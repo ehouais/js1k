@@ -135,7 +135,7 @@
             }
 
             // This was added to allow control of the demo. It's not part of the official js1k entry
-            var fn, timer;
+            var fn, timer, fw = W/35+3;
             document.onclick = function() { timer = timer ? (clearInterval(timer), null) : setInterval(fn, 50) };
 
             (fn = function() {
@@ -157,7 +157,7 @@
                     d < 5+s && d > -s && ( // iterate only if visible descendants
                         f = t/d,
                         w = s*f/.8, // TODO: optimize
-                        z[11] && (d < 0 || w > 24) ? (
+                        z[11] && (d < 0 || w > fw) ? (
                             o = 0|(A+8.5-z[1])*.955,
                             // Let's please the crusher
                             // (1) and (2) ensure that sea is drawn first - (TODO: do it at generation time)
