@@ -26,7 +26,194 @@
             var c = a.getContext('2d');
         </script>
         <script>
-for(_='*(H1,G[p-GxF2,E],Dw/EC0,BCB0DFACy+A-@Math.  abs(S+w> sin(.01H3onkey++q[DL[I]=8|3&t+S||8Hh),c.fillRect("+o+",M[2]=1Style="&&(20 cos(	.push(a.widthfunction(),=T[P] random()=tD==a.whickBO5BQ=[eGR=b=N=P=BBB0DX=/EY=a.height/1.5,T=[DsetInterval(){for(m=	Rn=Ri=m*k,j=n*k,K=(5-	4*R))/4,l=O/E!bN<0TB(r=8*)*	t=44*r*t[4,.1D0(S=!bN%0*T[P])?(P,U,V,M,J):e=#888"o=BY-l,2*X,Y+l)L=[QDI;q=eL[--I];)t=Bpxyshw<<p,0==N2==ph>10<.2T240>h?8:3Bx+Gy+G[[G4,55D[4,G100D[8BE90]][0|h/1+(18>DhSf=u=x-U)v=y-Vpf!8]qBBBF+@@Cy-A+Cy-CB0](d= sqrt(u*u+v*v))<SW=(J||+(1- pow(d/S,M[0]))*S*M[1])>h3]=s=?0|+*u/(d+1)/9:16>W?190:80+0|W/304]=W)d=k-(m*x+n*y8]!f)p>2*b+d/900)?(t=x>i^3Hy>jL[I]=8|3&t132]):h>12!Sg=m*y-n*x)<dh-Eo-so=srgb("+os=X/dX+s*g-(w*=s*KY+s*O-(h=s*-l,w+w+Gh+);e=b},0down=a){b,O+=33-34HO>R+=9-7,k+=40-38},up=){b=0};';g=/[- @-H]/.exec(_);)with(_.split(g))_=join(shift());eval(_)
+            /*
+                A : view angle
+                B : movement flag
+                D : view distance
+                E : height correction
+                F : current fillStyle
+                H : view height
+                I : index in nodes lifo
+                J : base height of added element
+                K : width correction factor for voxels
+                L : nodes lifo
+                M : characteristics of added element
+                N : generation counter
+                P : index in table of added elements
+                Q : root node
+                S : element size
+                T : terrain characteristics
+                U : new element X coordinate
+                V : new element Y coordinate
+                X : x offset
+                Y : Y offset
+                Z : fifo of added elements
+            */
+
+            D = 1200;
+            H = 150;
+            Q = [C = 11, A = B = N = P = 0, 0, 0, 0];
+            X = a.width/2; // x offset
+            Y = a.height/1.5; // Y offset
+            Z = [];
+
+            // generation params:
+            //   0: max radius,
+            //   1: power,
+            //   2: ratio,
+            //   3: luminosity
+
+            // rendering procedure ----------------------------------------
+            setInterval(function(e) {
+
+                // pre-compute useful values
+                m = Math.cos(A);
+                n = Math.sin(A);
+                i = m*D;
+                j = n*D;
+                K = (5-Math.cos(A*4))/4;
+                E = H/2;
+
+                if (
+                    !B
+                    && N++ < 200
+                ) {
+                    Z.push(
+                        200,
+                        (r = Math.random()*820)*Math.cos(t = Math.random()*44), // 44 ≈ 7*2π
+                        r*Math.sin(t),
+                        [4, .1],
+                        0
+                    )
+                }
+
+                if (
+                    S = !B
+                        && N%200
+                        && Math.random()*Z[P]
+                ) {
+                    P++;
+                    U = Z[P++];
+                    V = Z[P++];
+                    M = Z[P++];
+                    J = Z[P++];
+                } else if (C) {
+                    // draw canvas background
+                    a.width = a.width; // cross-browser trick to reset canvas
+                    c.fillStyle = '#888';
+                    c.fillRect(F = 0, Y-E, 2*X, Y+E) // ocean
+                }
+
+                // quadtree traversal
+                for (
+                    // initialize lifo with root node
+                    L = [Q],
+                    I = 1;
+
+                    // while there is a node in lifo
+                    q = C && L[--I];
+
+                ) {
+                    // node caracteristics
+                    t = 0; p = q[t++]; x = q[t++]; y = q[t++]; s = q[t++]; h = q[t++]; w = 1<<p;
+
+                    if (
+                        N == 200
+                        && p == 2
+                        && h > 10
+                        && Math.random() < .2
+                    ) {
+                        Z.push(
+                            h < 240 ? 8 : 30,
+                            x+1,
+                            y+1,
+                            [
+                                [1, 4, 55], // trees
+                                [4, 1, 100], // rocks
+                                [80, 2, 90] // building
+                            ][0|h/120+(h < 18)],
+                            h
+                        )
+                    }
+
+                    // are we adding an element ?
+                    if (S) {
+                        // is the added element intersecting current node ?
+                        f = S+w > Math.abs(u = x-U) && S+w > Math.abs(v = y-V);
+
+                        if (
+                            p // if max LOD not reached
+                            && f // and element intersects current node
+                            && !q[8] // and node has no children yet
+                        ) {
+                            q.push( // then create subnodes
+                                0, 0, 0,
+                                [p-1, x+w/2, y+w/2, 0, 0],
+                                [p-1, x-w/2, y+w/2, 0, 0],
+                                [p-1, x-w/2, y-w/2, 0, 0],
+                                [p-1, x+w/2, y-w/2, 0, 0]
+                            )
+                        }
+
+                        if (
+                            (d = Math.sqrt(u*u+v*v)) < S // center of current node is inside the added element
+                            && (z = (J || h) + (1-Math.pow(d/S, M[0]))*S*M[1]) > h // new height is greater than previous
+                        ) {
+                            // update luminosity
+                            q[3] = s = M[2] ? 0|M[2]+M[2]*u/(d+1)/9 : z < 16 ? 190 : 80 + 8*(0|z/30),
+                            // update height
+                            q[4] = z
+                        }
+                    }
+
+                    d = D-(m*x+n*y);
+
+                    if (
+                        q[8] // there are child nodes
+                        && (!S || f) // if we're adding an element, the element intersects the node
+                        && (S || p > 2*B + d/900) // max LOD is not reached yet (full LOD when adding element or standing still, reduced LOD otherwise)
+                    ) {
+                        // determine start quadrant
+                        t = i < x ^ 3*(j < y);
+                        // add subnodes in increasing z-index order
+                        L[I++] = q[8|3&t];
+                        L[I++] = q[8|3&t+1];
+                        L[I++] = q[8|3&t+3];
+                        L[I++] = q[8|3&t+2]
+                    } else if (
+                        h > 12
+                        && !S // not adding element
+                        && Math.abs(g = m*y-n*x) < d // node is within the view frustrum
+                    ) {
+                        h -= 12;
+                        // set new fill color (only if different from previous: important for FPS !)
+                        F-s && (F = s, c.fillStyle = 'rgb('+F+','+F+','+F); // parsers don't seem to care about closing parenthesis...
+
+                        // draw node
+                        s = X/d; // perspective factor = width/(d*tan(angle of view frustrum))
+                        c.fillRect(
+                            X+s*g-(w *= s*K),
+                            Y+s*H-(h = s*h)-E,
+                            w+w+1,
+                            h+h
+                        )
+                    }
+                }
+                C = S || B;
+
+            }, 0)
+
+            onkeydown = function(e) {
+                B = 1; // change indicator
+                H += 8*(e.which == 33) - 8*(e.which == 34)*(H > 20); // height
+                A += .01*(e.which == 39) - .01*(e.which == 37); // angle
+                D += 8*(e.which == 40) - 8*(e.which == 38) // distance
+                e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
+            }
+
+            onkeyup = function(e) {
+                B = 0 // change indicator
+            }
         </script>
     </body>
 </html>
