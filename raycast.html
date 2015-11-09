@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Quadtrees</title>
+        <meta charset="utf-8" />
+    </head>
+    <body style="margin: 0px; overflow: hidden; background-color: #fff">
+        <canvas id="c"></canvas>
+        <script>
+            var a = document.getElementsByTagName('canvas')[0];
+            var b = document.body;
+            var d = function(e) { return function() { e.parentNode.removeChild(e) } }(a);
+
+            // unprefix some popular vendor prefixed things (but stick to their original name)
+            var AudioContext = window.AudioContext
+                || window.webkitAudioContext;
+            var requestAnimationFrame = window.requestAnimationFrame
+                || window.mozRequestAnimationFrame
+                || window.webkitRequestAnimationFrame
+                || window.msRequestAnimationFrame
+                || function(f) { setTimeout(f, 1000/30) };
+
+            // stretch canvas to screen size (once, wont onresize!)
+            a.style.width = (a.width = innerWidth) + 'px';
+            a.style.height = (a.height = innerHeight) + 'px';
+            var c = a.getContext('2d');
+        </script>
+        <script>
+
+            W = a.width;
+            H = a.height;
+            A = -0.4;
+            B = 0;
+            S = 16;
+            Z = 15;
+            T = 0;
+            N = 1<<10; // 1024
+            X = Y = N/2;
+            C = 16;
+
+            function trace() {
+                //console.log(arguments);
+            }
+            // rendering procedure ----------------------------------------
+            setInterval(function(e) {
+
+                if (B || !T) {
+                    a.width = a.width;
+                    for (i=0; i<W; i+=S) {
+                        angle = A+Math.atan(0.5-i/W);
+                        hm = 50*Math.cos(angle*10);
+                        c.fillStyle = '#555';
+                        c.fillRect(i, H/2-50-hm, S, H/2+50+hm);
+                        cos = Math.cos(angle);
+                        sin = Math.sin(angle);
+                        tracef = (i == W/2);
+                        for (x1=x2=X, y1=y2=Y, jj=H, dd = 0, s=0; x1 > 0 && x1 < N && y1 > 0 && y1 < N; s++) {
+                            //tracef && console.group(s);
+                            xx = x1%C;
+                            x2 = x1+(cos > 0 ? C-xx : -(xx || C));
+                            yy = y1%C;
+                            y2 = y1+(sin > 0 ? C-yy : -(yy || C));
+                            tracef && trace(x2, y2);
+                            dx = Math.abs((x2-x1)/cos);
+                            dy = Math.abs((y2-y1)/sin);
+                            tracef && trace(x1, y1, dx, dy);
+                            color = ((0|x1/C)&1)^((0|y1/C)&1);
+                            tracef && trace(color);
+                            if (dx < dy) {
+                                dd += dx;
+                                x1 = x2;
+                                y1 += dx*sin;
+                            } else {
+                                dd += dy;
+                                x1 += dy*cos;
+                                y1 = y2;
+                            }
+                            z = 0; //50*(x1*x1+y1*y1>512*512); // f(x1, y1) = highest point during zone traversal
+                            j = (1+(Z-z)/dd)*H/2;
+                            tracef && trace(dd, x1, y1, j, z);
+                            if (j < jj) {
+                                c.fillStyle = color ? '#222' : '#444';
+                                c.fillRect(i, j, S, jj-j+1);
+                                jj = j;
+                            }
+                            //tracef && console.groupEnd();
+                            c.fillStyle = '#333';
+                            c.fillRect(i, H/2, S, jj-H/2);
+                        }
+                    }
+                }
+                T++;
+            }, 0)
+
+            onkeydown = function(e) {
+                B = 1; // change indicator
+                A += .02*(e.which == 37) - .02*(e.which == 39); // angle
+                Z += .4*(e.which == 33) - .4*(e.which == 34)*(Z > 1); // height
+                X += Math.cos(A)*2*((e.which == 38) - (e.which == 40));
+                Y += Math.sin(A)*2*((e.which == 38) - (e.which == 40));
+                e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
+            }
+
+            onkeyup = function(e) {
+                B = 0 // change indicator
+            }
+        </script>
+    </body>
+</html>
