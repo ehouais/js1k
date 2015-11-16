@@ -36,6 +36,9 @@
             // Improvements:
             // * multiple key pressed
             // * merge consecutive rects with same color
+            // * heading up and down
+            // * biomes
+            // * distance fog
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -51,23 +54,38 @@
 
             W = a.width;
             H = a.height;
-            A = -0.4;
-            B = 0;
+            K = H/2;
+            A = Math.PI/4;
             S = 0|W/150;
-            Z = 15;
+            Z = 100;
             N = 1<<10; // 1024
-            X = Y = N/2;
-            C = 8;
-            T = 0;
-            U = 0;
+            X = Y = 0;
+            C = 16;
+            V = .7;
+            AAA = 0;
+            AA = 0;
+            ZZ = 0;
+            HH = 0;
+            halt = false;
 
-            function trace() {
-                //console.log(arguments);
-            }
+            onkeydown = onkeyup = function(e) {
+                AAA = 5E-5*((e.which == 37) - (e.which == 39))*!!e.type[5]; // angle
+                ZZ = ((e.which == 38) - (e.which == 40))*!!e.type[5]; // height
+                HH += 5*((e.which == 33) - (e.which == 34)); // height
+                e.which == 32 && e.type[5] && (halt = !halt);
+                //VV = ((e.which == 38) - (e.which == 40))*!!e.type[5];
+                //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
+            };
+
             // rendering procedure ----------------------------------------
             (function render(time) {
 
-                if (B || !T) {
+                if (!halt) {
+                    A += AA += AAA;
+                    X += V*Math.cos(A);
+                    Y += V*Math.sin(A);
+                    Z += ZZ*.5;
+
                     a.width = a.width;
                     R = [[],[],[],[]];
                     for (k=0; k < W; k += S) {
@@ -75,7 +93,6 @@
                         /*hm = 50*Math.cos(angle*10);
                         c.fillStyle = '#555';
                         c.fillRect(k, H/2-50-hm, S, H/2+50+hm);*/
-                        tracef = (k == 0);
 
                         cos = Math.cos(angle);
                         cp = cos > 0;
@@ -93,57 +110,42 @@
                         hh = H;
                         dd = 0;
 
-                        for (s=0; x > 0 && x < N && y > 0 && y < N; s++) {
-                            //tracef && console.group(s);
-                            color = (i^j)&1 | dd > 300;
-                            tracef && trace(i, j, x, y, color);
+                        for (s=0; x >= 0 && x < N && y >= 0 && y < N; s++) {
                             if (di < dj) {
                                 dd += di;
-                                x = C*(cp ? ++i : --i);
+                                x = C*(cp ? ++i : i--);
                                 y += di*sin;
                                 dj -= di;
                                 di = Di
                             } else {
                                 dd += dj;
-                                y = C*(sp ? ++j : --j);
+                                y = C*(sp ? ++j : j--);
                                 x += dj*cos;
                                 di -= dj;
                                 dj = Dj;
                             }
-                            z = -50+50*(Math.cos(x/50)*Math.cos(y/50)); // height = f(i, j, x, y)
-                            h = (1+(Z-z)/dd)*H/2/*-U*(0.5-k/W)*5000*/;
+                            z = 50+50*(Math.cos(x/50)*Math.cos(y/50)); // height = f(i, j, x, y)
+                            color = z > 50 ? 0|z/30 : (i^j)&1; //0|z/30;// | dd > 300;
+                            h = K+K*(Z-z)/dd/*-U*(0.5-k/W)*5000*/;
                             //h -= h%2;
-                            h < hh && R[color].push(hh-h, k, hh = h+1);
-                            //tracef && console.groupEnd();
+                            h < hh
+                              ? R[color].push(hh-h, k, hh = h+1)
+                              : R[2].push(2, k, hh); // ridge line
                         }
                     }
                     // group fillrects by color context
-                    for (k=0; k<2; k++) {
+                    for (k=0; k<3; k++) {
                         f = 2*k;
                         c.fillStyle = '#'+f+f+f;
-                        for (j=0; h=R[k][j++]; ) {
+                        for (j=0, r = R[k] || []; h=R[k][j++]; ) {
                             c.fillRect(R[k][j++], R[k][j++], S, h);
                         }
                     }
+                    fps(time);
                 }
 
-                fps(time);
                 requestAnimationFrame(render);
-                T++;
             })(0);
-
-            onkeydown = function(e) {
-                B = 1; // change indicator
-                A += (U = .03*(e.which == 37) - .03*(e.which == 39)); // angle
-                Z += .4*(e.which == 33) - .4*(e.which == 34)*(Z > 1); // height
-                X += Math.cos(A)*3*((e.which == 38) - (e.which == 40));
-                Y += Math.sin(A)*3*((e.which == 38) - (e.which == 40));
-                e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
-            }
-
-            onkeyup = function(e) {
-                U = B = 0 // change indicator
-            }
         </script>
     </body>
 </html>
