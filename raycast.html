@@ -39,6 +39,10 @@
             // * heading up and down
             // * biomes
             // * distance fog
+            // * roads /rivers
+            // * buildings
+            // * plane trip: plain+fields+buildings, canyon+river, mountains+forests, monument valley, ocean+cliffs
+            // * clouds
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -56,22 +60,22 @@
             H = a.height;
             K = H/2;
             A = Math.PI/4;
-            S = 0|W/150;
+            S = 0|W/200;
             Z = 100;
             N = 1<<10; // 1024
             X = Y = 0;
             C = 16;
-            V = .7;
+            V = 1;
             AAA = 0;
             AA = 0;
             ZZ = 0;
-            HH = 0;
+            //HH = 0;
             halt = false;
 
             onkeydown = onkeyup = function(e) {
-                AAA = 5E-5*((e.which == 37) - (e.which == 39))*!!e.type[5]; // angle
+                AAA = 1E-4*((e.which == 37) - (e.which == 39))*!!e.type[5]; // angle
                 ZZ = ((e.which == 38) - (e.which == 40))*!!e.type[5]; // height
-                HH += 5*((e.which == 33) - (e.which == 34)); // height
+                //HH += 5*((e.which == 33) - (e.which == 34)); // height
                 e.which == 32 && e.type[5] && (halt = !halt);
                 //VV = ((e.which == 38) - (e.which == 40))*!!e.type[5];
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
@@ -84,7 +88,7 @@
                     A += AA += AAA;
                     X += V*Math.cos(A);
                     Y += V*Math.sin(A);
-                    Z += ZZ*.5;
+                    Z += ZZ;
 
                     a.width = a.width;
                     R = [[],[],[],[]];
@@ -124,13 +128,13 @@
                                 di -= dj;
                                 dj = Dj;
                             }
-                            z = 50+50*(Math.cos(x/50)*Math.cos(y/50)); // height = f(i, j, x, y)
-                            color = z > 50 ? 0|z/30 : (i^j)&1; //0|z/30;// | dd > 300;
-                            h = K+K*(Z-z)/dd/*-U*(0.5-k/W)*5000*/;
+                            z = 30+30*(Math.cos(x/30)*Math.cos(y/20)); // height = f(i, j, x, y)
+                            color = false /*z > 50*/ ? 0|z/30 : (i^j)&1; //0|z/30;// | dd > 300;
+                            h = K+K*(Z-z)/dd/*-U*(0.5-k/W)*5000*/+(k-W/2)*AA*20;
                             //h -= h%2;
                             h < hh
                               ? R[color].push(hh-h, k, hh = h+1)
-                              : R[2].push(2, k, hh); // ridge line
+                              : false /*color == 3*/ ? R[2].push(1, k, hh) : 0; // ridge line
                         }
                     }
                     // group fillrects by color context
