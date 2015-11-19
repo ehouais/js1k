@@ -73,18 +73,12 @@
             AA = 0;
             ZZ = 0;
             F = 0; // 4 bits: left|up|right|down
-            //HH = 0;
             halt = false;
 
             onkeydown = onkeyup = function(e) {
                 t = 1<<40-e.which;
                 e.type[5] ? F |= t : F &= ~t;
-
-                //AAA = 1E-4*((e.which == 37) - (e.which == 39))*!!e.type[5]; // angle
-                //ZZ = ((e.which == 38) - (e.which == 40))*!!e.type[5]; // height
-                //HH += 5*((e.which == 33) - (e.which == 34)); // height
                 e.which == 32 && e.type[5] && (halt = !halt);
-                //VV = ((e.which == 38) - (e.which == 40))*!!e.type[5];
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
 
@@ -97,6 +91,8 @@
                     Z += V*Math.sin(ZZ += (F&4 ? -1 : F&1)/5E1);
                     X += V*Math.cos(A);
                     Y += V*Math.sin(A);
+                    K1 = AA*20;
+                    K2 = ZZ*120;
 
                     a.width = a.width;
                     R = [[], [], [], []];
@@ -138,8 +134,8 @@
                             }
                             z = 50+50*(Math.cos(x/50)*Math.cos(y/40)); // height = f(i, j, x, y)
                             color = (i^j)&1;
-                            zz = (k-W)*AA*20+ZZ*120;
-                            h = H+H*(Z-z)/dd/*-U*(1-k/W)*2500*/+zz;
+                            zz = (k-W)*K1+K2;
+                            h = H+H*(Z-z)/dd+zz;
                             h < hh
                               ? R[color].push(hh-h, k, hh = h+1)
                               : false /*color == 3*/ ? R[2].push(1, k, hh) : 0; // ridge line
