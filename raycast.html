@@ -34,7 +34,6 @@
         </script>
         <script>
             // Improvements:
-            // * merge consecutive rects with same color
             // * distance fog
             // * roads /rivers
             // * buildings
@@ -48,6 +47,7 @@
             // * skip small fillRects
             // * V = f(Z)
             // * direction of light/normals
+            // * variable width for fillRects
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -64,12 +64,12 @@
             W = a.width/2;
             H = a.height/2;
             A = Math.PI/4;
-            S = 0|W/100;
-            Z = 100;
+            S = 0|W/150;
+            Z = 120;
             N = 1<<10; // 1024
             X = Y = 0;
             C = 16;
-            V = 2;
+            V = 5;
             AA = 0;
             ZZ = 0;
             F = 0; // 4 bits: left|up|right|down
@@ -92,12 +92,13 @@
                     X += V*Math.cos(A);
                     Y += V*Math.sin(A);
                     K1 = AA*20;
-                    K2 = ZZ*120;
+                    K2 = H+ZZ*120-W*K1;
 
                     a.width = a.width;
                     R = [[], [], [], []];
                     for (k=0; k < 2*W; k += S) {
                         angle = A+Math.atan((1-k/W)/2);
+                        zz = k*K1+K2; // roll + pitch simulation
                         /*hm = 50*Math.cos(angle*10);
                         c.fillStyle = '#555';
                         c.fillRect(k, H/2-50-hm, S, H/2+50+hm);*/
@@ -115,38 +116,52 @@
                         di = (cp ? C-X%C : X%C)*Di/C;
                         dj = (sp ? C-Y%C : Y%C)*Dj/C;
 
-                        hh = 2*H;
-                        dd = 0;
+                        h1 = hh = 2*H; // current screen y coordinate
+                        c1 = 0; // current color
+                        f = 0;
 
-                        for (s=0; dd < 1500; s++) {
-                            if (di < dj) {
-                                dd += di;
-                                x = C*(cp ? ++i : i--);
-                                y += di*sin;
-                                dj -= di;
-                                di = Di
-                            } else {
-                                dd += dj;
-                                y = C*(sp ? ++j : j--);
-                                x += dj*cos;
-                                di -= dj;
-                                dj = Dj;
+                        for (dd=0; dd < 1200; ) {
+                            f = f ? f+1&3 : i%10 == 0 && j%10 == 0; // buildings
+
+                            if (f^1) { // f != 1 && f != 3
+                                if (di < dj) {
+                                    dd += di;
+                                    x = C*(cp ? ++i : i--);
+                                    y += di*sin;
+                                    dj -= di;
+                                    di = Di
+                                } else {
+                                    dd += dj;
+                                    y = C*(sp ? ++j : j--);
+                                    x += dj*cos;
+                                    di -= dj;
+                                    dj = Dj;
+                                }
                             }
-                            z = 50+50*(Math.cos(x/50)*Math.cos(y/40)); // height = f(i, j, x, y)
-                            color = (i^j)&1;
-                            zz = (k-W)*K1+K2;
-                            h = H+H*(Z-z)/dd+zz;
-                            h < hh
-                              ? R[color].push(hh-h, k, hh = h+1)
-                              : false /*color == 3*/ ? R[2].push(1, k, hh) : 0; // ridge line
+                            if (f%3) { // f == 1 || f == 2
+                                z = Z-150; // building height
+                            } else {
+                                z = Z-50-50*(Math.cos(x/50)*Math.cos(y/40)); // relative height = f(i, j, x, y)
+                            }
+                            h2 = H*z/dd+zz; // screen height
+                            if (h2 < hh) {
+                                c2 = f^1 ? (i^j)&1 : 3;
+                                if (c2 != c1) { // add fillRect if color different from the previous one, else merge
+                                    hh != h1 && R[c1].push(h1-hh+1, k, hh);
+                                    h1 = hh;
+                                    c1 = c2;
+                                }
+                                hh = h2;
+                            } else {
+                                //R[~c1&3].push(1, k, hh); // ridge line
+                            }
                         }
-                        // to horizon
-                        h = H+zz;
-                        if (h < hh) {
-                            R[2].push(hh-h, k, h);
-                        }
+                        R[c1].push(h1-hh+1, k, hh);
+
+                        zz < hh && R[2].push(hh+1-zz, k, zz); // complete to horizon if necessary
+
                         // minimalist head-up display
-                        //R[3].push(S, W, H, S, W-AA*1E4, H-ZZ*100);
+                        R[3].push(S, W, H, S, W-AA*1E4, H-ZZ*100);
                     }
                     // group fillrects by color context
                     for (k=0; k<4; k++) {
