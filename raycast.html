@@ -48,6 +48,8 @@
             // * AA = f(V)
             // * variable width for fillRects
             // * targets to shoot ?
+            // * add functions to profile
+            // * collisions ?
             // 935 bytes cleaned, jsminified & regpacked
 
             var fps = (function(id) {
@@ -142,29 +144,29 @@
                             if (h2 < hh) {
                                 c2 = f^1 ? z1 == 0 && z2 == 0 ? 2 : (i^j)&1 : 2+(o && v > 0);
                                 if (c2 != c1) { // add fillRect if color different from the previous one, else merge
-                                    hh != h1 && R[c1].push(h1-hh+1, k, hh);
+                                    hh != h1 && R[c1].push(h1-hh+1, k, hh, S);
                                     h1 = hh;
                                     c1 = c2;
                                 }
                                 hh = h2;
                             } else {
-                                //R[~c1&3].push(1, k, hh); // ridge line
+                                //R[~c1&3].push(1, k, hh, S); // ridge line
                             }
                             z1 = z2;
                         }
 
-                        R[c1].push(h1-hh+1, k, hh); // push last rect in pipe
+                        R[c1].push(h1-hh+1, k, hh, S); // push last rect in pipe
 
-                        zz < hh && R[2].push(hh+1-zz, k, zz); // complete to horizon if necessary
+                        zz < hh && R[2].push(hh+1-zz, k, zz, S); // complete to horizon if necessary
 
-                        //R[3].push(S, W, H, S, W-AA*1E4, H-ZZ*100); // minimalist head-up display
+                        R[3].push(1, W-50, H-ZZ*100, 100, 100, W-AA*1E4, H-50, 1); // minimalist head-up display
                     }
                     // fillrects grouped by color context
                     for (k=0; k<8; k++) {
                         f = 3*k;
                         c.fillStyle = '#'+f+f+f;
                         for (j=0, r = R[k] || []; h=r[j++]; ) {
-                            c.fillRect(r[j++], r[j++], S, h);
+                            c.fillRect(r[j++], r[j++], r[j++], h);
                         }
                     }
 
