@@ -74,121 +74,145 @@
             N = 800;
             A = 1;
             S = 0|W/150;
-            Z = 300;
+            Z = 20;
             X = Y = 0;
-            C = 16;
-            V = 6;
-            AA = 0;
-            ZZ = 0;
-            F = 0; // 4 bits: left|up|right|down
+            V = 1;
+            B = C = 0;
+            K = 0; // 4 bits: left|up|right|down
+            O = 400;
+            R = [];
+
             halt = false;
 
             onkeydown = onkeyup = function(e) {
                 t = 1<<40-e.which;
-                e.type[5] ? F |= t : F &= ~t; // update the flag of down keys
+                e.type[5] ? K |= t : K &= ~t; // update the flag of down keys
                 e.which == 32 && e.type[5] && (halt = !halt);
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
 
-            O = 400;
-            P = [];
-            R = [];
+            for (
+                k = 0;
+                k++ < O;
+            )
+                R.push(N*Math.random(), N*Math.random());
 
-            for (n=0; n<O; n++)
-                P.push(N*Math.random(), N*Math.random());
-
-            for (i=0; i++<N; )
-                for (M[i]=[], j=0; j++<N; ) {
-                    v = [[0, N],[0, N]];
-                    for (n=0; n<O; n++) {
-                        dx = i - P[n*2];
-                        dy = j - P[n*2+1];
-                        d = Math.sqrt(dx*dx+dy*dy);
-                        d < v[1][1] && (v = d < v[0][1] ? [[n, d] ,v[0]] : [v[0], [n, d]]);
+            for (
+                i = 0;
+                i++ < N;
+            )
+                for (
+                    M[i] = [], j = 0;
+                    j++ < N;
+                ) {
+                    t = [[0, N],[0, N]];
+                    for (
+                        k = 0;
+                        k < O;
+                        k++
+                    ) {
+                        x = i - R[k*2];
+                        y = j - R[k*2+1];
+                        d = Math.sqrt(x*x+y*y);
+                        d < t[1][1] && (t = d < t[0][1] ? [[k, d], t[0]] : [t[0], [k, d]]);
                     }
-                    M[i][j] = 2*(1-v[0][1]/v[1][1])*v[0][0];
-                    /*r = f < .07 ? 128 : 0|f*v[0][0];
-                    c.fillStyle = 'rgb('+r+','+r+','+r+')';
-                    c.fillRect(i, j, 1, 1);*/
+                    M[i][j] = (1-t[0][1]/t[1][1])*t[0][0]/12;
                 }
+
+            //throw '';
+            R = [];
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
                 if (!halt) {
-                    A += AA += (F&2 ? -8 : F&8)/5E4;
+                    A += B += (K&2 ? -8 : K&8)/5E4;
                     //V += (F&64 ? -128 : F&128)/1E3;
-                    Z += V*Math.sin(ZZ += (F&4 ? -1 : F&1)/5E1);
+                    Z += V*Math.sin(C += (K&4 ? -1 : K&1)/100);
                     X += V*Math.cos(A);
                     Y += V*Math.sin(A);
-                    K1 = AA*20;
-                    K2 = H+ZZ*120-W*K1;
+                    T = B*30;
+                    U = H+C*430-W*T;
 
                     a.width = a.width; // canvas white reset
 
                     // fillrects grouped by color context
-                    for (k=0; k++<32; ) {
+                    for (
+                        k = 0;
+                        k++ < 32;
+                    ) {
                         f = k<<3;
                         c.fillStyle = 'rgb('+f+','+f+','+f+')';
-                        for (j=0, r = R[k] || []; h=r[j++]; )
-                            c.fillRect(r[j++], r[j++], r[j++], h);
+
+                        for (
+                            j = 0, r = R[k] || [];
+                            h = r[j++]+1;
+                        )
+                            c.fillRect(r[j++], r[j++], r[j++], h+1);
+
                         R[k] = [];
                     }
 
-                    for (k=0; k < 2*W; k += S) {
+                    for (
+                        k = 0;
+                        k < 2*W;
+                        k += S
+                    ) {
                         r = A+Math.atan((1-k/W)/2);
-                        p = k*K1+K2; // roll + pitch simulation
+                        p = k*T+U; // roll + pitch simulation
 
-                        Di = C/Math.abs(v = Math.cos(r));
-                        Dj = C/Math.abs(w = Math.sin(r));
-                        //x = X;
-                        //y = Y;
-                        i = 0|X/C;
-                        j = 0|Y/C;
-                        di = (v > 0 ? C-X%C : X%C)*Di/C;
-                        dj = (w > 0 ? C-Y%C : Y%C)*Dj/C;
+                        E = 1/Math.abs(v = Math.cos(r));
+                        F = 1/Math.abs(w = Math.sin(r));
+                        i = 0|X;
+                        j = 0|Y;
+                        x = X-i;
+                        y = Y-j;
+                        e = (v > 0 ? 1-x : x)*E;
+                        f = (w > 0 ? 1-y : y)*F;
 
-                        z0 = z1 = 2*H; // current screen y coordinate
-                        c1 = 0; // current color
+                        z1 = 2*H; // current screen y coordinate
+                        z = c1 = 0; // current color
 
-                        for (d=0; d < 5000; ) {
+                        for (
+                            d = 0;
+                            d < 300;
+                        ) {
 
-                            h = M[i] && M[i][j] || 0; //Math.min(500, M[i][j]);
-                            if (di < dj) {
-                                d += di;
-                                //x = (v > 0 ? ++i : i--)<<4;
+                            if (e < f) {
+                                d += e;
                                 i += v > 0 ? 1 : -1;
-                                //de = di*w;
-                                //y += de;
-                                dj -= di;
-                                di = Di
+                                f -= e;
+                                e = E;
+                                //x = 0;
+                                //y += e*w;
+                                //h = (M[i] && M[i][j] || 0)*(1-y)+(M[i] && M[i][j+1] || 0)*y;
                             } else {
-                                d += dj;
-                                //y = (w > 0 ? ++j : j--)<<4;
+                                d += f;
                                 j +=  w > 0 ? 1 : -1;
-                                //de = dj*v;
-                                //x += de;
-                                di -= dj;
-                                dj = Dj;
+                                e -= f;
+                                f = F;
+                                //x += f*v;
+                                //y = 0;
+                                //h = (M[i] && M[i][j] || 0)*(1-x)+(M[i+1] && M[i+1][j] || 0)*x;
                             }
-                            z2 = H*(Z-50-h)/d+p; // height on screen from perspective calcultaions
+                            h = M[i] && M[i][j] || 0;
+
+                            z2 = H*(Z-h)/d+p; // height on screen from perspective calcultaions
                             if (z2 < z1) {
-                                c2 = /*((i^j)&1)<<2*/ /*!(i%3 || j%3)+*/Math.min(31, 2*(!(i%7 || j%7) || h < 9)+Math.max(5, 0|(d-500)/80)/*+0|h/150*/);
+                                c2 = /*((i^j)&1)<<2*/ /*!(i%3 || j%3)+*/Math.min(31, 2*(!(i%7 || j%7) || h < 1)+Math.max(5, 0|(d-15)/5)/*+0|h/150*/);
                                 if (c2 != c1) { // add fillRect if color different from the previous one, else merge
-                                    z1 != z0 && R[c1].push(z0-z1+1, k, z1, S);
-                                    z0 = z1;
+                                    z && R[c1].push(z, k, z1, S);
+                                    z = 0;
                                     c1 = c2;
                                 }
+                                z += z1-z2;
                                 z1 = z2;
                             }
                         }
 
-                        R[c1].push(z0-z1+1, k, z1, S); // push last rect in pipe
-
-                        //zz < z1 && R[31].push(z1+1-zz, k, p, S); // complete to horizon if necessary
-
-                        R[25].push(1, W-50, H-ZZ*100, 100, 100, W-AA*1E4, H-50, 1); // minimalist head-up display
+                        R[c1].push(z, k, z1, S); // push last rect in pipe
                     }
+                    //R[25].push(1, W-50, H/*-C*100*/, 100, 100, W/*-B*1E4*/, H-50, 1); // minimalist head-up display
 
                     fps(+new Date);
                     //coords.innerHTML = (0|X)+','+(0|Y);
