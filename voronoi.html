@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Voronoi cells</title>
+        <meta charset="utf-8" />
+        <style>
+            #fps {
+                position: absolute;
+                top: 0;
+            }
+        </style>
+    </head>
+    <body style="margin: 0px; overflow: hidden; background-color: #fff">
+        <canvas></canvas>
+        <div id="fps"></div>
+        <script>
+            var a = document.getElementsByTagName('canvas')[0];
+            var b = document.body;
+            var d = function(e) { return function() { e.parentNode.removeChild(e) } }(a);
+
+            // unprefix some popular vendor prefixed things (but stick to their original name)
+            var AudioContext = window.AudioContext
+                || window.webkitAudioContext;
+            var requestAnimationFrame = window.requestAnimationFrame
+                || window.mozRequestAnimationFrame
+                || window.webkitRequestAnimationFrame
+                || window.msRequestAnimationFrame
+                || function(f) { setTimeout(f, 1000/30) };
+
+            // stretch canvas to screen size (once, wont onresize!)
+            a.style.width = (a.width = innerWidth) + 'px';
+            a.style.height = (a.height = innerHeight) + 'px';
+            var c = a.getContext('2d');
+        </script>
+        <script>
+            M = 400;
+            N = 800;
+            P = [];
+
+            for (n=0; n<M; n++)
+                P.push(N*Math.random(), N*Math.random());
+
+            for (i=0; i<N; i++)
+                for (j=0; j<N; j++) {
+                    v = [[0, N],[0, N]];
+                    for (n=0; n<M; n++) {
+                        dx = i - P[n*2];
+                        dy = j - P[n*2+1];
+                        d = Math.sqrt(dx*dx+dy*dy);
+                        d < v[1][1] && (v = d < v[0][1] ? [[n, d] ,v[0]] : [v[0], [n, d]]);
+                    }
+                    f = 1-v[0][1]/v[1][1];
+                    r = /*f < .07 ? 128 :*/ 0|f*v[0][0];
+                    c.fillStyle = 'rgb('+r+','+r+','+r+')';
+                    c.fillRect(i, j, 1, 1);
+                }
+                /*c.fillStyle = '#fff';
+                for (n=0; n<M; n++)
+                    c.fillRect(0|P[n*2]*fx, 0|P[n*2+1]*fy, 2, 2);*/
+        </script>
+    </body>
+</html>
