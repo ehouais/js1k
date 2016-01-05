@@ -141,43 +141,37 @@
                         f = (w > 0 ? 1-y : y)*F;
 
                         z1 = 2*H; // current screen y coordinate
-                        z = c1 = h = c2 = 0; // current color
+                        z = c1 = h = 0; // current color
 
                         for (
-                            s = d = 0;
+                            d = 0;
                             d < 2*D;
                         ) {
-                            if (s) {
-                                h = i >= 0 && j >= 0 && i < N && j < N && M[i][j];
-                                c2 = h ? ((i^j)&1)<<2/*Math.min(0|h, 31)*/ : 29;
-                            } else if (e < f) {
+                            if (e < f) {
                                 d += e;
                                 i = (v > 0 ? i+1 : i-1);
                                 f -= e;
+                                x = 0;
+                                y += e*w;
+                                h = i >= 0 && j >= 0 && i < N && j < N-1 && M[i][j]*(1-y)+M[i][j+1]*y;
                                 e = E;
-                                //x = 0;
-                                //y += e*w;
-                                //h = (M[i] && M[i][j] || 0)*(1-y)+(M[i] && M[i][j+1] || 0)*y;
-                                l = 0;
                             } else {
                                 d += f;
                                 j = (w > 0 ? j+1 : j-1);
                                 e -= f;
+                                x += f*v;
+                                y = 0;
+                                h = i >= 0 && j >= 0 && i < N-1 && j < N && M[i][j]*(1-x)+M[i+1][j]*x;
                                 f = F;
-                                //x += f*v;
-                                //y = 0;
-                                //h = (M[i] && M[i][j] || 0)*(1-x)+(M[i+1] && M[i+1][j] || 0)*x;
-                                l = w > 0;
                             }
-                            t = c2 + 2*l*s;
-                            s = !s;
+                            c2 = h ? ((i^j)&1)<<2/*Math.min(0|h, 31)*/ : 29;
 
                             z2 = H*(Z-h)/d-100; // height on screen from perspective calcultaions
                             if (z2 < z1) {
-                                if (t != c1) { // add fillRect if color different from the previous one, else merge
+                                if (c2 != c1) { // add fillRect if color different from the previous one, else merge
                                     z && R[c1].push(z, k, z1, S);
                                     z = 0;
-                                    c1 = t;
+                                    c1 = c2;
                                 }
                                 z += z1-z2;
                                 z1 = z2;

@@ -177,30 +177,28 @@
                             d < 300;
                         ) {
 
-                            if (s) {
-                                h = M[i][j];
-                                c2 = /*((i^j)&1)<<2*/ /*!(i%3 || j%3)+*/Math.min(31, 2*(!(i%7 || j%7) || h < .8)+Math.max(5, 0|(d-15)/5)/*+0|h/150*/);
-                            } else if (e < f) {
+                            if (e < f) {
                                 d += e;
                                 i = (v > 0 ? i+1 : i+N-1)%N;
                                 f -= e;
+                                x = 0;
+                                y += e*w;
+                                h = M[i][j]*(1-y)+M[i][(j+1)%N]*y;
                                 e = E;
-                                //x = 0;
-                                //y += e*w;
-                                //h = (M[i] && M[i][j] || 0)*(1-y)+(M[i] && M[i][j+1] || 0)*y;
                             } else {
                                 d += f;
                                 j = (w > 0 ? j+1 : j+N-1)%N;
                                 e -= f;
+                                x += f*v;
+                                y = 0;
+                                h = M[i][j]*(1-x)+M[(i+1)%N][j]*x;
                                 f = F;
-                                //x += f*v;
-                                //y = 0;
-                                //h = (M[i] && M[i][j] || 0)*(1-x)+(M[i+1] && M[i+1][j] || 0)*x;
                             }
                             s = !s;
 
                             z2 = H*(Z-h)/d+p; // height on screen from perspective calcultaions
                             if (z2 < z1) {
+                                c2 = /*((i^j)&1)<<2*/ /*!(i%3 || j%3)+*/Math.min(31, 2*(!(i%7 || j%7) || h < .8)+Math.max(5, 0|(d-15)/5)/*+0|h/150*/);
                                 if (c2 != c1) { // add fillRect if color different from the previous one, else merge
                                     z && R[c1].push(z, k, z1, S);
                                     z = 0;
