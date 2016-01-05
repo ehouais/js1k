@@ -71,15 +71,14 @@
             W = a.width/2;
             H = a.height/2;
             M = [];
-            N = 800;
+            N = 1<<8;
             A = 1;
-            S = 0|W/150;
+            S = W>>7;
             Z = 20;
             X = Y = 0;
             V = 1;
             B = C = 0;
             K = 0; // 4 bits: left|up|right|down
-            O = 400;
             R = [];
 
             halt = false;
@@ -93,30 +92,30 @@
 
             for (
                 k = 0;
-                k++ < O;
+                k < N;
             )
-                R.push(N*Math.random(), N*Math.random());
+                R.push(N*Math.random(k++), N*Math.random(k++));
 
             for (
                 i = 0;
-                i++ < N;
+                i < N;
+                i++
             )
                 for (
                     M[i] = [], j = 0;
-                    j++ < N;
+                    j < N;
                 ) {
-                    t = [[0, N],[0, N]];
+                    t = [0, N, N];
                     for (
                         k = 0;
-                        k < O;
-                        k++
+                        k < N;
                     ) {
-                        x = i - R[k*2];
-                        y = j - R[k*2+1];
+                        x = Math.abs(d = i - R[k++]) > N/2 ? N-d : d; // x = Math.min(Math.abs(d = i - R[k++]), Math.abs(N-d));
+                        y = Math.abs(d = j - R[k++]) > N/2 ? N-d : d; // y = Math.min(Math.abs(d = j - R[k++]), Math.abs(N-d));
                         d = Math.sqrt(x*x+y*y);
-                        d < t[1][1] && (t = d < t[0][1] ? [[k, d], t[0]] : [t[0], [k, d]]);
+                        d < t[2] && (t = d < t[1] ? [k, d, t[1]] : [t[0], t[1], d]);
                     }
-                    M[i][j] = (1-t[0][1]/t[1][1])*t[0][0]/12;
+                    M[i][j++] = (1-t[1]/t[2])*t[0]/12;
                 }
 
             //throw '';
@@ -129,8 +128,8 @@
                     A += B += (K&2 ? -8 : K&8)/5E4;
                     //V += (F&64 ? -128 : F&128)/1E3;
                     Z += V*Math.sin(C += (K&4 ? -1 : K&1)/100);
-                    X += V*Math.cos(A);
-                    Y += V*Math.sin(A);
+                    X = (X + V*Math.cos(A) + N)%N;
+                    Y = (Y + V*Math.sin(A) + N)%N;
                     T = B*30;
                     U = H+C*430-W*T;
 
@@ -180,7 +179,7 @@
 
                             if (e < f) {
                                 d += e;
-                                i += v > 0 ? 1 : -1;
+                                i = (v > 0 ? i+1 : i+N-1)%N;
                                 f -= e;
                                 e = E;
                                 //x = 0;
@@ -188,14 +187,19 @@
                                 //h = (M[i] && M[i][j] || 0)*(1-y)+(M[i] && M[i][j+1] || 0)*y;
                             } else {
                                 d += f;
-                                j +=  w > 0 ? 1 : -1;
+                                j = (w > 0 ? j+1 : j+N-1)%N;
                                 e -= f;
                                 f = F;
                                 //x += f*v;
                                 //y = 0;
                                 //h = (M[i] && M[i][j] || 0)*(1-x)+(M[i+1] && M[i+1][j] || 0)*x;
                             }
-                            h = M[i] && M[i][j] || 0;
+
+                            //try {
+                                h = M[i][j];
+                            //} catch(e) {
+                            //    console.log(i, j);
+                            //}
 
                             z2 = H*(Z-h)/d+p; // height on screen from perspective calcultaions
                             if (z2 < z1) {
