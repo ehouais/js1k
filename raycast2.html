@@ -1,0 +1,193 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Raycaster</title>
+        <meta charset="utf-8" />
+        <style>
+            #fps {
+                position: absolute;
+                top: 0;
+            }
+            #coords {
+                position: absolute;
+                top: 20px;
+            }
+        </style>
+    </head>
+    <body style="margin: 0px; overflow: hidden; background-color: #fff">
+        <canvas></canvas>
+        <div id="fps"></div>
+        <div id="coords"></div>
+        <script>
+            var a = document.getElementsByTagName('canvas')[0];
+            var b = document.body;
+            var d = function(e) { return function() { e.parentNode.removeChild(e) } }(a);
+
+            // unprefix some popular vendor prefixed things (but stick to their original name)
+            var AudioContext = window.AudioContext
+                || window.webkitAudioContext;
+            var requestAnimationFrame = window.requestAnimationFrame
+                || window.mozRequestAnimationFrame
+                || window.webkitRequestAnimationFrame
+                || window.msRequestAnimationFrame
+                || function(f) { setTimeout(f, 1000/30) };
+
+            // stretch canvas to screen size (once, wont onresize!)
+            a.style.width = (a.width = innerWidth) + 'px';
+            a.style.height = (a.height = innerHeight) + 'px';
+            var c = a.getContext('2d');
+        </script>
+        <script>
+            // Improvements:
+            // * biomes: plain+fields+fences+raods+villages, monument valley+canyon+river,
+            // * biomes: mountains+forests+rivers+castles+snow, ocean+cliffs+beaches+islands, city+skyscrapers+streets
+            // * runway+lift-off
+            // * clouds
+            // * keep aspect ratio
+            // * more colors
+            // * one-dimension array for fillRects
+            // * skip small fillRects
+            // * V = f(Z)
+            // * AA = f(V)
+            // * variable width for fillRects
+            // * targets to shoot ?
+            // * add functions to profile
+            // * collisions ?
+            // * primary color (2nd background) = f(biome)
+
+            W = a.width/2;
+            H = a.height/2;
+            M = [];
+            N = 1<<4;
+            A = 0;
+            S = W>>7;
+            Z = 1.5*N;
+            X = Y = 0;
+            V = 1;
+            D = N;
+            B = 0;
+            K = 0; // 4 bits: left|up|right|down
+            R = [];
+
+            onkeydown = onkeyup = function(e) {
+                B = 1;
+                A += .04*(e.which == 39) - .04*(e.which == 37); // angle
+                //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
+            };
+
+            for (
+                k = 0;
+                k < N;
+            )
+                R.push(N*Math.random(k++), N*Math.random(k++));
+
+            for (
+                i = 0;
+                i < N;
+                i++
+            )
+                for (
+                    M[i] = [], j = 0;
+                    j < N;
+                ) {
+                    x = i - N/2;
+                    y = j - N/2;
+                    M[i][j++] = 10*Math.exp(-(x*x+y*y)/20);
+                }
+
+            //throw '';
+            R = [];
+
+            // rendering procedure ----------------------------------------
+            setInterval(function(e) {
+                if (B) {
+                    B = 0;
+                    X = N/2-D*Math.cos(A);
+                    Y = N/2-D*Math.sin(A);
+
+                    a.width = a.width; // canvas white reset
+
+                    // fillrects grouped by color context
+                    for (
+                        k = 0;
+                        k < 32;
+                    ) {
+                        f = k<<3;
+                        c.fillStyle = 'rgb('+f+','+f+','+f+')';
+
+                        for (
+                            j = 0, r = R[k] || [];
+                            h = r[j++];
+                        )
+                            c.fillRect(r[j++], r[j++], r[j++], h+1);
+
+                        R[k++] = [];
+                    }
+
+                    for (
+                        k = 0;
+                        k < 2*W;
+                        k += S
+                    ) {
+                        r = A+Math.atan((1-k/W)/2);
+
+                        E = 1/Math.abs(v = Math.cos(r));
+                        F = 1/Math.abs(w = Math.sin(r));
+                        i = 0|X;
+                        j = 0|Y;
+                        x = X-i;
+                        y = Y-j;
+                        e = (v > 0 ? 1-x : x)*E;
+                        f = (w > 0 ? 1-y : y)*F;
+
+                        z1 = 2*H; // current screen y coordinate
+                        z = c1 = h = c2 = 0; // current color
+
+                        for (
+                            s = d = 0;
+                            d < 2*D;
+                        ) {
+                            if (s) {
+                                h = i >= 0 && j >= 0 && i < N && j < N && M[i][j];
+                                c2 = h ? ((i^j)&1)<<2/*Math.min(0|h, 31)*/ : 29;
+                            } else if (e < f) {
+                                d += e;
+                                i = (v > 0 ? i+1 : i-1);
+                                f -= e;
+                                e = E;
+                                //x = 0;
+                                //y += e*w;
+                                //h = (M[i] && M[i][j] || 0)*(1-y)+(M[i] && M[i][j+1] || 0)*y;
+                                l = 0;
+                            } else {
+                                d += f;
+                                j = (w > 0 ? j+1 : j-1);
+                                e -= f;
+                                f = F;
+                                //x += f*v;
+                                //y = 0;
+                                //h = (M[i] && M[i][j] || 0)*(1-x)+(M[i+1] && M[i+1][j] || 0)*x;
+                                l = w > 0;
+                            }
+                            t = c2 + 2*l*s;
+                            s = !s;
+
+                            z2 = H*(Z-h)/d-100; // height on screen from perspective calcultaions
+                            if (z2 < z1) {
+                                if (t != c1) { // add fillRect if color different from the previous one, else merge
+                                    z && R[c1].push(z, k, z1, S);
+                                    z = 0;
+                                    c1 = t;
+                                }
+                                z += z1-z2;
+                                z1 = z2;
+                            }
+                        }
+
+                        R[c1].push(z, k, z1, S); // push last rect in pipe
+                    }
+                }
+            }, 33);
+        </script>
+    </body>
+</html>
