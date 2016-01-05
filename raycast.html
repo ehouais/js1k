@@ -74,7 +74,7 @@
             N = 1<<8;
             A = 1;
             S = W>>7;
-            Z = 20;
+            Z = 10;
             X = Y = 0;
             V = 1;
             B = C = 0;
@@ -110,12 +110,12 @@
                         k = 0;
                         k < N;
                     ) {
-                        x = Math.abs(d = i - R[k++]) > N/2 ? N-d : d; // x = Math.min(Math.abs(d = i - R[k++]), Math.abs(N-d));
-                        y = Math.abs(d = j - R[k++]) > N/2 ? N-d : d; // y = Math.min(Math.abs(d = j - R[k++]), Math.abs(N-d));
+                        x = Math.min(d = Math.abs(i - R[k++]), Math.abs(N-d));
+                        y = Math.min(d = Math.abs(j - R[k++]), Math.abs(N-d));
                         d = Math.sqrt(x*x+y*y);
                         d < t[2] && (t = d < t[1] ? [k, d, t[1]] : [t[0], t[1], d]);
                     }
-                    M[i][j++] = (1-t[1]/t[2])*t[0]/12;
+                    M[i][j++] = (1-t[1]/t[2])*t[0]/9;
                 }
 
             //throw '';
@@ -203,7 +203,7 @@
 
                             z2 = H*(Z-h)/d+p; // height on screen from perspective calcultaions
                             if (z2 < z1) {
-                                c2 = /*((i^j)&1)<<2*/ /*!(i%3 || j%3)+*/Math.min(31, 2*(!(i%7 || j%7) || h < 1)+Math.max(5, 0|(d-15)/5)/*+0|h/150*/);
+                                c2 = /*((i^j)&1)<<2*/ /*!(i%3 || j%3)+*/Math.min(31, 2*(!(i%7 || j%7) || h < .8)+Math.max(5, 0|(d-15)/5)/*+0|h/150*/);
                                 if (c2 != c1) { // add fillRect if color different from the previous one, else merge
                                     z && R[c1].push(z, k, z1, S);
                                     z = 0;
