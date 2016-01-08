@@ -59,21 +59,15 @@
             H = a.height/2;
             M = [];
             N = 1<<4;
-            A = 0;
+            A = .0;
             S = W>>7;
-            Z = 1.5*N;
+            Z = 20;
             X = Y = 0;
             V = 1;
             D = N;
             B = 0;
             K = 0; // 4 bits: left|up|right|down
             R = [];
-
-            onkeydown = onkeyup = function(e) {
-                B = 1;
-                A += .04*(e.which == 39) - .04*(e.which == 37); // angle
-                //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
-            };
 
             for (
                 k = 0;
@@ -87,101 +81,96 @@
                 i++
             )
                 for (
-                    M[i] = [], j = 0;
+                    M[i] = [], z1 = j = 0;
                     j < N;
                 ) {
                     x = i - N/2;
                     y = j - N/2;
-                    M[i][j++] = 10*Math.exp(-(x*x+y*y)/20);
+                    M[i][j++] = [z2 = 10*Math.exp(-(x*x+y*y)/20), 0|4/(Math.abs(z1-z2)+.25)];
+                    z1 = z2;
                 }
 
             //throw '';
             R = [];
 
             // rendering procedure ----------------------------------------
-            setInterval(function(e) {
-                if (B) {
-                    B = 0;
-                    X = N/2-D*Math.cos(A);
-                    Y = N/2-D*Math.sin(A);
+            X = N/2-D*Math.cos(A);
+            Y = N/2-D*Math.sin(A);
 
-                    a.width = a.width; // canvas white reset
+            a.width = a.width; // canvas white reset
 
-                    // fillrects grouped by color context
-                    for (
-                        k = 0;
-                        k < 32;
-                    ) {
-                        f = k<<3;
-                        c.fillStyle = 'rgb('+f+','+f+','+f+')';
+            for (
+                k = 0;
+                k < 32;
+            )
+                R[k++] = [];
 
-                        for (
-                            j = 0, r = R[k] || [];
-                            h = r[j++];
-                        )
-                            c.fillRect(r[j++], r[j++], r[j++], h+1);
+            NN = 80;
+            for (
+                n = 0, k = 0;
+                k < 2*W;
+                k += S, n++
+            ) {
+                r = A+Math.atan((1-k/W)/2);
 
-                        R[k++] = [];
+                E = 1/Math.abs(v = Math.cos(r));
+                F = 1/Math.abs(w = Math.sin(r));
+                I = (X + N)%N;
+                J = (Y + N)%N;
+                e = (!v || 1-I%1)*E; // (v > 0 ? 1-I%1 : I%1)*E;
+                f = (!w || 1-J%1)*F; //(w > 0 ? 1-J%1 : J%1)*F;
+
+                z1 = 2*H; // current screen y coordinate
+                c1 = 0; // current color
+
+                (n == NN) && console.log(I, J, 0, c1, 0, z1);
+
+                for (
+                    d = 0;
+                    d < 2*D;
+                ) {
+                    o = e < f;
+                    t = o ? e : f;
+                    d += t;
+                    I = (I + (o ? 1-I%1 : t*v) + N)%N;
+                    J = (J + (o ? t*w : 1-J%1) + N)%N;
+                    u = o ? J%1 : I%1;
+                    i = 0|I;
+                    j = 0|J;
+                    h = 0; //M[i][j][0]*(1-u)+(o ? M[i][(j+1)%N][0] : M[(i+1)%N][j][0])*u;
+                    e = o ? E : e-t;
+                    f = o ? f-t : F;
+
+                    c2 = Math.min(31, M[i][j][1]+2*(n == NN)); // next cell's color
+
+                    z2 = H*(Z-h)/d-100; // height on screen from perspective calcultaions
+                    (n == NN) && console.log(I, J, d, c2, h, z2);
+                    if (z2 < z1 && c2 != c1) { // add fillRect if color different from the previous one, else merge
+                        R[c1].push(z1-z2, k, z1 = z2, S);
                     }
-
-                    for (
-                        k = 0;
-                        k < 2*W;
-                        k += S
-                    ) {
-                        r = A+Math.atan((1-k/W)/2);
-
-                        E = 1/Math.abs(v = Math.cos(r));
-                        F = 1/Math.abs(w = Math.sin(r));
-                        i = 0|X;
-                        j = 0|Y;
-                        x = X-i;
-                        y = Y-j;
-                        e = (v > 0 ? 1-x : x)*E;
-                        f = (w > 0 ? 1-y : y)*F;
-
-                        z1 = 2*H; // current screen y coordinate
-                        z = c1 = h = 0; // current color
-
-                        for (
-                            d = 0;
-                            d < 2*D;
-                        ) {
-                            if (e < f) {
-                                d += e;
-                                i = (v > 0 ? i+1 : i-1);
-                                f -= e;
-                                x = 0;
-                                y += e*w;
-                                h = i >= 0 && j >= 0 && i < N && j < N-1 && M[i][j]*(1-y)+M[i][j+1]*y;
-                                e = E;
-                            } else {
-                                d += f;
-                                j = (w > 0 ? j+1 : j-1);
-                                e -= f;
-                                x += f*v;
-                                y = 0;
-                                h = i >= 0 && j >= 0 && i < N-1 && j < N && M[i][j]*(1-x)+M[i+1][j]*x;
-                                f = F;
-                            }
-                            c2 = h ? ((i^j)&1)<<2/*Math.min(0|h, 31)*/ : 29;
-
-                            z2 = H*(Z-h)/d-100; // height on screen from perspective calcultaions
-                            if (z2 < z1) {
-                                if (c2 != c1) { // add fillRect if color different from the previous one, else merge
-                                    z && R[c1].push(z, k, z1, S);
-                                    z = 0;
-                                    c1 = c2;
-                                }
-                                z += z1-z2;
-                                z1 = z2;
-                            }
-                        }
-
-                        R[c1].push(z, k, z1, S); // push last rect in pipe
-                    }
+                    c1 = c2;
                 }
-            }, 33);
+
+                z1-z2 && R[c1].push(z1-z2, k, z2, S); // push last rect in pipe
+                (n == NN) && console.log('>>> push', z1-z2, z1 = z2, c1);
+            }
+
+            // fillrects grouped by color context
+            for (
+                k = 0;
+                k < 32;
+                k++
+            ) {
+                f = k<<3;
+                c.fillStyle = 'rgb('+f+','+f+','+f+')';
+
+                for (
+                    j = 0, r = R[k];
+                    h = r[j++];
+                ) {
+                    c.fillRect(r[j++], r[j++], r[j++], h+1);
+                }
+            }
         </script>
     </body>
 </html>
