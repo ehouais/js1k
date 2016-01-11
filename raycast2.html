@@ -59,7 +59,7 @@
             H = a.height/2;
             M = [];
             N = 1<<4;
-            A = .0;
+            A = 0;
             S = W>>7;
             Z = 20;
             X = Y = 0;
@@ -94,8 +94,8 @@
             R = [];
 
             // rendering procedure ----------------------------------------
-            X = N/2-D*Math.cos(A);
-            Y = N/2-D*Math.sin(A);
+            X = N/2-D*.6*Math.cos(A);
+            Y = N/2-D*.6*Math.sin(A);
 
             a.width = a.width; // canvas white reset
 
@@ -120,39 +120,39 @@
                 e = (!v || 1-I%1)*E; // (v > 0 ? 1-I%1 : I%1)*E;
                 f = (!w || 1-J%1)*F; //(w > 0 ? 1-J%1 : J%1)*F;
 
-                z1 = 2*H; // current screen y coordinate
+                z2 = z1 = 2*H; // current screen y coordinate
                 c1 = 0; // current color
 
                 (n == NN) && console.log(I, J, 0, c1, 0, z1);
 
                 for (
                     d = 0;
-                    d < 2*D;
+                    d < 4*D;
                 ) {
                     o = e < f;
                     t = o ? e : f;
                     d += t;
-                    I = (I + (o ? 1-I%1 : t*v) + N)%N;
-                    J = (J + (o ? t*w : 1-J%1) + N)%N;
+                    I += o ? (v > 0)-I%1 : f*v;
+                    J += o ? e*w : (w > 0)-J%1;
                     u = o ? J%1 : I%1;
                     i = 0|I;
                     j = 0|J;
-                    h = 0; //M[i][j][0]*(1-u)+(o ? M[i][(j+1)%N][0] : M[(i+1)%N][j][0])*u;
+                    h = M[i%N][j%N][0]*(1-u)+(o ? M[i%N][(j+1)%N][0] : M[(i+1)%N][j%N][0])*u;
                     e = o ? E : e-t;
                     f = o ? f-t : F;
 
-                    c2 = Math.min(31, M[i][j][1]+2*(n == NN)); // next cell's color
+                    c2 = Math.min(31, M[(i+N-(v < 0))%N][(j+N-(w < 0))%N][1]+2*(n == NN)); // next cell's color
 
-                    z2 = H*(Z-h)/d-100; // height on screen from perspective calcultaions
+                    z = H*(Z-h)/d-100; // height on screen from perspective calcultaions
                     (n == NN) && console.log(I, J, d, c2, h, z2);
-                    if (z2 < z1 && c2 != c1) { // add fillRect if color different from the previous one, else merge
-                        R[c1].push(z1-z2, k, z1 = z2, S);
+                    if (z < z2 && c2 != c1) { // add fillRect if color different from the previous one, else merge
+                        R[c1].push(z1-z, k, z1 = z2 = z, S);
                     }
                     c1 = c2;
                 }
 
-                z1-z2 && R[c1].push(z1-z2, k, z2, S); // push last rect in pipe
-                (n == NN) && console.log('>>> push', z1-z2, z1 = z2, c1);
+                z < z2 && R[c1].push(z1-z, k, z, S); // push last rect in pipe
+                (n == NN) && console.log('>>> push', z1-z, z, c1);
             }
 
             // fillrects grouped by color context
