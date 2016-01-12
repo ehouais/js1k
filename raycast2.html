@@ -38,31 +38,13 @@
             var c = a.getContext('2d');
         </script>
         <script>
-            // Improvements:
-            // * biomes: plain+fields+fences+raods+villages, monument valley+canyon+river,
-            // * biomes: mountains+forests+rivers+castles+snow, ocean+cliffs+beaches+islands, city+skyscrapers+streets
-            // * runway+lift-off
-            // * clouds
-            // * keep aspect ratio
-            // * more colors
-            // * one-dimension array for fillRects
-            // * skip small fillRects
-            // * V = f(Z)
-            // * AA = f(V)
-            // * variable width for fillRects
-            // * targets to shoot ?
-            // * add functions to profile
-            // * collisions ?
-            // * primary color (2nd background) = f(biome)
-
             W = a.width/2;
             H = a.height/2;
             M = [];
             N = 1<<4;
-            A = 0;
+            A = -Math.PI/4;
             S = W>>7;
-            Z = 20;
-            X = Y = 0;
+            Z = 30;
             V = 1;
             D = N;
             B = 0;
@@ -83,10 +65,11 @@
                 for (
                     M[i] = [], z1 = j = 0;
                     j < N;
+                    j++
                 ) {
                     x = i - N/2;
                     y = j - N/2;
-                    M[i][j++] = [z2 = 10*Math.exp(-(x*x+y*y)/20), 0|4/(Math.abs(z1-z2)+.25)];
+                    M[i][j] = [z2 = 10*Math.exp(-(x*x+y*y)/20), 0|4/(Math.abs(z1-z2)+.25)];
                     z1 = z2;
                 }
 
@@ -105,7 +88,7 @@
             )
                 R[k++] = [];
 
-            NN = 80;
+            NN = 2000;
             for (
                 n = 0, k = 0;
                 k < 2*W;
@@ -117,42 +100,45 @@
                 F = 1/Math.abs(w = Math.sin(r));
                 I = (X + N)%N;
                 J = (Y + N)%N;
-                e = (!v || 1-I%1)*E; // (v > 0 ? 1-I%1 : I%1)*E;
-                f = (!w || 1-J%1)*F; //(w > 0 ? 1-J%1 : J%1)*F;
+                e = (I%1 ? v > 0 ? 1-I%1 : I%1 : 1)*E;
+                f = (J%1 ? w > 0 ? 1-J%1 : J%1 : 1)*F;
 
                 z2 = z1 = 2*H; // current screen y coordinate
                 c1 = 0; // current color
 
-                (n == NN) && console.log(I, J, 0, c1, 0, z1);
+                (n == NN) && console.log(I, J, 0, c1, 0, z1, E, F);
 
                 for (
                     d = 0;
-                    d < 4*D;
+                    d < 8*D;
                 ) {
+                    (n == NN) && console.log(e, f);
                     o = e < f;
                     t = o ? e : f;
                     d += t;
-                    I += o ? (v > 0)-I%1 : f*v;
-                    J += o ? e*w : (w > 0)-J%1;
+                    I = (I + (o ? (v > 0 || -(I%1 == 0))-I%1 : f*v) + N)%N;
+                    J = (J + (o ? e*w : (w > 0 || -(J%1 == 0))-J%1) + N)%N;
                     u = o ? J%1 : I%1;
-                    i = 0|I;
-                    j = 0|J;
-                    h = M[i%N][j%N][0]*(1-u)+(o ? M[i%N][(j+1)%N][0] : M[(i+1)%N][j%N][0])*u;
+                    h = M[i=~~I%N][j=~~J%N][0];
+                    h += (o ? M[i][(j+1)%N][0]-h : M[(i+1)%N][j][0]-h)*u;
                     e = o ? E : e-t;
                     f = o ? f-t : F;
 
-                    c2 = Math.min(31, M[(i+N-(v < 0))%N][(j+N-(w < 0))%N][1]+2*(n == NN)); // next cell's color
-
                     z = H*(Z-h)/d-100; // height on screen from perspective calcultaions
-                    (n == NN) && console.log(I, J, d, c2, h, z2);
+                    (n == NN) && console.log('>', I, J, d, c2, h, z);
+
+                    (n == NN) && console.log('color', (i-(o && v < 0)+N)%N, (j-(!o && w < 0)+N)%N);
+                    c2 = Math.min(31, M[(i-(o && v < 0)+N)%N][(j-(!o && w < 0)+N)%N][1]+2*(n == NN)); // next cell's color
+
                     if (z < z2 && c2 != c1) { // add fillRect if color different from the previous one, else merge
+                        (n == NN) && console.log('>>> push', z1-z, z, c1);
                         R[c1].push(z1-z, k, z1 = z2 = z, S);
                     }
                     c1 = c2;
                 }
 
+                (n == NN) && z < z2 && console.log('>>> push', z1-z, z, c1);
                 z < z2 && R[c1].push(z1-z, k, z, S); // push last rect in pipe
-                (n == NN) && console.log('>>> push', z1-z, z, c1);
             }
 
             // fillrects grouped by color context
