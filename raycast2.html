@@ -42,7 +42,7 @@
             H = a.height/2;
             M = [];
             N = 1<<4;
-            A = -Math.PI/4;
+            A = Math.PI/4;
             S = W>>7;
             Z = 30;
             V = 1;
@@ -104,7 +104,7 @@
                 f = (J%1 ? w > 0 ? 1-J%1 : J%1 : 1)*F;
 
                 z2 = z1 = 2*H; // current screen y coordinate
-                c1 = 0; // current color
+                c2 = c1 = 0; // current color
 
                 (n == NN) && console.log(I, J, 0, c1, 0, z1, E, F);
 
@@ -125,20 +125,20 @@
                     f = o ? f-t : F;
 
                     z = H*(Z-h)/d-100; // height on screen from perspective calcultaions
-                    (n == NN) && console.log('>', I, J, d, c2, h, z);
 
-                    (n == NN) && console.log('color', (i-(o && v < 0)+N)%N, (j-(!o && w < 0)+N)%N);
-                    c2 = Math.min(31, M[(i-(o && v < 0)+N)%N][(j-(!o && w < 0)+N)%N][1]+2*(n == NN)); // next cell's color
-
-                    if (z < z2 && c2 != c1) { // add fillRect if color different from the previous one, else merge
-                        (n == NN) && console.log('>>> push', z1-z, z, c1);
-                        R[c1].push(z1-z, k, z1 = z2 = z, S);
+                    if (z < z1) {
+                        if (c1 != c2) {
+                            z1 < z2 && R[c2].push(z2-z1, k, z2 = z1, S);
+                            c2 = c1;
+                        }
+                        z1 = z;
                     }
-                    c1 = c2;
+
+                    c1 = Math.min(31, M[(i-(o && v < 0)+N)%N][(j-(!o && w < 0)+N)%N][1]+2*(n == NN)); // next cell's color
+
                 }
 
-                (n == NN) && z < z2 && console.log('>>> push', z1-z, z, c1);
-                z < z2 && R[c1].push(z1-z, k, z, S); // push last rect in pipe
+                z1 < z2 && R[c2].push(z2-z1, k, z1, S); // push last rect in pipe
             }
 
             // fillrects grouped by color context
