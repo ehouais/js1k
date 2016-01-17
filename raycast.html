@@ -104,6 +104,7 @@
             V = .4;
             B =
             C =
+            D =
             K = 0; // 4 bits: left|up|right|down
             R = [];
 
@@ -158,11 +159,12 @@
                 if (!halt) {
                     A += B += (K&2 ? -8 : K&8)/8E4;
                     //V += (F&64 ? -128 : F&128)/1E3;
-                    Z += C += (K&4 ? -1 : K&1)/300; //(W < -3 ? -1 : 1)/400;
-                    X += V*Math.cos(A);
-                    Y += V*Math.sin(A);
+                    D += C += (K&4 ? -1 : K&1)/2E3;
+                    Z += V*D; // approx: sin(x) ~ x for |x| < 0.5
+                    X += V*Math.cos(D)*Math.cos(A);
+                    Y += V*Math.cos(D)*Math.sin(A);
                     T = B*30;
-                    U = H+C*600-H*T;
+                    U = H+D*600-H*T;
 
                     a.height = a.height; // canvas white reset
 
