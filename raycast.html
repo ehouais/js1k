@@ -133,7 +133,7 @@
                     j < N;
                     j++
                 ) {
-                    t = [0, N, N]; // [point id, distance to point, distance to 2nd point]
+                    t = [];
                     for (
                         k = 0;
                         r = R[k];
@@ -144,10 +144,10 @@
                             Math.min(d = Math.abs(i - r[0]), Math.abs(N-d)),
                             Math.min(d = Math.abs(j - r[1]), Math.abs(N-d))
                         );
-                        d < t[2] && (t = d < t[1] ? [k, d, t[1]] : [t[0], t[1], d]);
+                        t.splice(2*(d > t[1])+2*(d > t[3]), 0, k, d);
                     }
                     M[i][j] = [
-                        m = Math.max(0, Math.min( 40, (m = (1-t[1]/t[2])*t[0]/7)*m -.1 )),
+                        m = Math.max(0, Math.min( 40, (m = (1-t[1]/t[3])*t[0]/9)*m -.1 )),
                         m ? 12 + 8/(Math.abs(m-n)+1) : 14
                     ];
                     n = m;
