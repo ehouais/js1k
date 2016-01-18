@@ -38,12 +38,11 @@
             var c = a.getContext('2d');
         </script>
         <script>
-            W = a.width/2;
-            H = a.height/2;
+            H = (c.width = a.height)/2;
             M = [];
             N = 1<<4;
             A = Math.PI/4;
-            S = W>>7;
+            S = 1;
             Z = 30;
             V = 1;
             D = N;
@@ -90,55 +89,70 @@
 
             NN = 2000;
             for (
-                n = 0, k = 0;
-                k < 2*W;
-                k += S, n++
+                nn = 0, k = 0;
+                k < 2*H;
+                k += S, nn++
             ) {
-                r = A+Math.atan((1-k/W)/2);
+                r = A+(1-k/H)/2;
 
-                E = 1/Math.abs(v = Math.cos(r));
-                F = 1/Math.abs(w = Math.sin(r));
-                I = (X + N)%N;
-                J = (Y + N)%N;
-                e = (I%1 ? v > 0 ? 1-I%1 : I%1 : 1)*E;
-                f = (J%1 ? w > 0 ? 1-J%1 : J%1 : 1)*F;
+                E = 1/Math.abs(v = Math.cos(r)*H);
+                F = 1/Math.abs(w = Math.sin(r)*H);
+                c1 = M[I = 0|X][J = 0|Y];
+                x = X-I;
+                y = Y-J;
+                e = x ? E*(v > 0 ? 1-x : x) : E;
+                f = y ? F*(w > 0 ? 1-y : y) : F;
 
-                z2 = z1 = 2*H; // current screen y coordinate
-                c2 = c1 = 0; // current color
+                m = n = 2*H; // current screen y coordinate
+                p = q = 0; // current color
 
-                (n == NN) && console.log(I, J, 0, c1, 0, z1, E, F);
+                (nn == NN) && console.log(I, J, 0, c1, 0, z1, E, F);
 
                 for (
                     d = 0;
-                    d < 8*D;
+                    d < 8*D/H;
                 ) {
-                    (n == NN) && console.log(e, f);
-                    o = e < f;
-                    t = o ? e : f;
-                    d += t;
-                    I = (I + (o ? (v > 0 || -(I%1 == 0))-I%1 : f*v) + N)%N;
-                    J = (J + (o ? e*w : (w > 0 || -(J%1 == 0))-J%1) + N)%N;
-                    u = o ? J%1 : I%1;
-                    h = M[i=~~I%N][j=~~J%N][0];
-                    h += (o ? M[i][(j+1)%N][0]-h : M[(i+1)%N][j][0]-h)*u;
-                    e = o ? E : e-t;
-                    f = o ? f-t : F;
+                    (nn == NN) && console.log(e, f, e < f ? 'di < dj' : 'di >= dj');
 
-                    z = H*(Z-h)/d-100; // height on screen from perspective calcultaions
+                    if (e < f) {
+                        x = v < 0;
+                        y += e*w;
+                        d += e;
+                        f -= e;
+                        e = E;
 
-                    if (z < z1) {
-                        if (c1 != c2) {
-                            z1 < z2 && R[c2].push(z2-z1, k, z2 = z1, S);
-                            c2 = c1;
+                        h = y*M[(x ? I-- : ++I)%N][(J+1)%N][0];
+                        c2 = M[I%N][J%N];
+                        h += (1-y)*(x ? c1 : c2)[0];
+                    } else {
+                        y = w < 0;
+                        x += f*v;
+                        d += f;
+                        e -= f;
+                        f = F;
+
+                        h = x*M[(I+1)%N][(y ? J-- : ++J)%N][0];
+                        c2 = M[I%N][J%N];
+                        h += (1-x)*(y ? c1 : c2)[0];
+                    }
+                    (nn == NN) && console.log(I, J, y, M[I%N][(J+1)%N]);
+
+                    z = (Z-h)/d-100; // height on screen from perspective calcultaions
+
+                    if (z < m) {
+                        if (p != q) {
+                            m < n && R[q].push(n-m, k, n = m, S);
+                            q = p;
                         }
-                        z1 = z;
+                        m = z;
                     }
 
-                    c1 = Math.min(31, M[(i-(o && v < 0)+N)%N][(j-(!o && w < 0)+N)%N][1]+2*(n == NN)); // next cell's color
+                    p = Math.min(31, c2[1]+2*(nn == NN)); // next cell's color
+                    c1 = c2;
 
                 }
 
-                z1 < z2 && R[c2].push(z2-z1, k, z1, S); // push last rect in pipe
+                m < n && R[q].push(n-m, k, m, S); // push last rect in pipe
             }
 
             // fillrects grouped by color context
