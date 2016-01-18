@@ -44,9 +44,7 @@
                 for (j=0; j<N; j++) {
                     v = [[0, N],[0, N]];
                     for (n=0; n<M; n++) {
-                        dx = i - P[n*2];
-                        dy = j - P[n*2+1];
-                        d = Math.sqrt(dx*dx+dy*dy);
+                        d = Math.hypot(i - P[n*2], j - P[n*2+1]);
                         d < v[1][1] && (v = d < v[0][1] ? [[n, d] ,v[0]] : [v[0], [n, d]]);
                     }
                     f = 1-v[0][1]/v[1][1];
