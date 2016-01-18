@@ -92,18 +92,15 @@
                 })('fps'),
                 coords = document.getElementById('coords');
 
-            H = (c.width = a.height)/2;
+            H = (W = c.width = a.height)/2;
             M = [];
-            N = 1<<8;
-            A = 1.5;
-            S = 5;
-            //W =
-            Z = 10;
+            N = 256;
+            S = 4;
+            Z = 15;
             X = Y = 1e9;
-            X += N/2;
             V = .4;
+            A =
             B =
-            C =
             D =
             K = 0; // 4 bits: left|up|right|down
             R = [];
@@ -119,7 +116,7 @@
 
             for (
                 k = 0;
-                k < N/2;
+                k < N;
             )
                 R.push([N*Math.random(k++), N*Math.random(k++)]);
 
@@ -159,7 +156,7 @@
                 if (!halt) {
                     A += B += (K&2 ? -8 : K&8)/8E4;
                     //V += (F&64 ? -128 : F&128)/1E3;
-                    D += C += (K&4 ? -1 : K&1)/2E3;
+                    D += (K&4 ? -1 : K&1)/200;
                     Z += V*D; // approx: sin(x) ~ x for |x| < 0.5
                     X += V*Math.cos(D)*Math.cos(A);
                     Y += V*Math.cos(D)*Math.sin(A);
@@ -187,22 +184,24 @@
                     }
 
                     for (
-                        //W = -H,
                         k = 0;
-                        k < 2*H;
+                        k < W;
                         k += S
                     ) {
-                        r = A+(1-k/H)/2; // approx: atan(x) ~ x for |x| < 0.4
+                        r = A+(.5-k/W); // approx: atan(x) ~ x for |x| < 0.4
                         P = k*T+U; // roll + pitch simulation
 
-                        E = 1/Math.abs(v = Math.cos(r)*H);
-                        F = 1/Math.abs(w = Math.sin(r)*H);
-                        I = X;
-                        J = Y;
-                        e = (t = I%1) ? E*(v > 0 ? 1-t : t) : E;
-                        f = (t = J%1) ? F*(w > 0 ? 1-t : t) : F;
+                        E = 1/Math.abs(v = H*Math.cos(r));
+                        F = 1/Math.abs(w = H*Math.sin(r));
+                        I = 0|X;
+                        J = 0|Y;
+                        x = X-I;
+                        y = Y-J;
+                        u = M[I&255][J&255];
+                        e = E*(v < 0 ? x : 1-x);
+                        f = F*(w < 0 ? y : 1-y);
 
-                        m = n = 2*H; // current screen y coordinate
+                        m = n = W; // current screen y coordinate
                         p = q = 0; // current color
 
                         for (
@@ -210,48 +209,56 @@
                             d < .25;
                         ) {
 
-                            if (o = e < f) {
-                                I += -(t = I%1)+(v > 0 || -!t);
-                                J += e*w;
-                                h = M[i=~~I&255][j=~~J&255][0];
-                                h += (M[i][j+1&255][0]-h)*(J%1) - Z;
-                                d += e;
-                                f -= e;
-                                e = E;
-                            } else {
-                                I += f*v;
-                                J += -(t = J%1)+(w > 0 || -!t);
-                                h = M[i=~~I&255][j=~~J&255][0];
-                                h += (M[i+1&255][j][0]-h)*(I%1) - Z;
-                                d += f;
-                                e -= f;
-                                f = F;
-                            }
+                            t = u;
+
+                            g = e < f ? [
+                                x = v < 0,
+                                y += e*w,
+                                x ? I-- : ++I,
+                                J+1,
+                                e,
+                                E,
+                                f-e
+                            ] : [
+                                y = w < 0,
+                                x += f*v,
+                                I+1,
+                                y ? J-- : ++J,
+                                f,
+                                e-f,
+                                F
+                            ];
+                            o = 0;
+                            u = M[I&255][J&255];
+                            h = g[o++] ? t[0] : u[0];
+                            h += g[o++]*(M[g[o++]&255][g[o++]&255][0] - h) - Z;
+                            d += g[o++];
+                            e = g[o++];
+                            f = g[o++];
 
                             z = P-h/d; // height on screen from perspective calculations
                             //d < .2 && Math.abs(k-H) <  10 && h > W && (W = h);
 
-                            if (z < m) {
-                                if (p != q) {
-                                    m < n && R[q].push(n-m, k, m);
-                                    n = m;
-                                    q = p;
-                                }
-                                m = z;
-                            }
+                            z < m && (
+                                p-q && (
+                                    n-m && R[q].push(n-m, k, n = m),
+                                    q = p
+                                ),
+                                m = z
+                            );
 
-                            p = 0|Math.min(31, Math.max(0, M[(i-(o && v < 0)+N)%N][(j-(!o && w < 0)+N)%N][1] + (d > .15 && d*200-30) /*+0|h/150*/));
+                            p = 0|Math.min(31, Math.max(0, u[1] + (d > .15 && d*200-30) /*+0|h/150*/));
 
                         }
 
-                        m < n && R[q].push(n-m, k, m); // push last rect in pipe
+                        R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
                     //R[25].push(1, W-50, H/*-C*100*/, 100, 100, W/*-B*1E4*/, H-50, 1); // minimalist head-up display
 
                     fps(+new Date);
                     //coords.innerHTML = nr;
                 }
-            }, 25);
+            }, 33);
         </script>
     </body>
 </html>
