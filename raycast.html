@@ -243,13 +243,12 @@
                                 m = z
                             );
 
-                            p = 0|Math.min(31, Math.max(0, u[1] + (d > .15 && d*200-30) /*+0|h/150*/));
+                            p = 0|Math.min(31, Math.max(0, u[1] + (d > .15 && d*200-30)));
 
                         }
 
                         R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
-                    //R[25].push(1, W-50, H/*-C*100*/, 100, 100, W/*-B*1E4*/, H-50, 1); // minimalist head-up display
 
                     fps(+new Date);
                     //coords.innerHTML = nr;
