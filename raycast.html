@@ -95,7 +95,6 @@
             S = 4;
             Z = 15;
             X = Y = 1e9;
-            V = .4;
             A =
             B =
             D =
@@ -154,9 +153,9 @@
                     A += B += (K&2 ? -8 : K&8)/8E4;
                     //V += (F&64 ? -128 : F&128)/1E3;
                     D += (K&4 ? -1 : K&1)/200;
-                    Z += V*D; // approx: sin(x) ~ x for |x| < 0.5
-                    X += V*Math.cos(D)*Math.cos(A);
-                    Y += V*Math.cos(D)*Math.sin(A);
+                    Z += D; // approx: sin(x) ~ x for |x| < 0.5
+                    X += Math.cos(D)*Math.cos(A);
+                    Y += Math.cos(D)*Math.sin(A);
                     T = B*30;
                     U = H+D*600-H*T;
 
