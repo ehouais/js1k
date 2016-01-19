@@ -140,8 +140,8 @@
                         t.splice(2*(d > t[1])+2*(d > t[3]), 0, k, d);
                     }
                     M[i][j] = [
-                        m = Math.max(0, Math.min( 40, (m = (1-t[1]/t[3])*t[0]/9)*m -.1 )),
-                        m ? 12 + 8/(Math.abs(m-n)+1) : 14
+                        m = (m = 1-t[1]/t[3])*m*t[0]/9,
+                        14 + 6/(Math.abs(m-n)+.8)
                     ];
                     n = m;
                 }
@@ -184,7 +184,7 @@
                         k < W;
                         k += S
                     ) {
-                        r = A+(.5-k/W); // approx: atan(x) ~ x for |x| < 0.4
+                        r = A+.5-k/W; // approx: atan(x) ~ x for |x| < 0.4
                         P = k*T+U; // roll + pitch simulation
 
                         E = 1/Math.abs(v = H*Math.cos(r));
