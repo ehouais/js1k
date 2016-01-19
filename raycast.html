@@ -94,7 +94,7 @@
             N = 256;
             S = 4;
             Z = 15;
-            X = Y = 1e9;
+            X = Y = 1e9; Y += N/2;
             A =
             B =
             D =
@@ -150,7 +150,7 @@
             setInterval(function(e) {
 
                 if (!halt) {
-                    A += B += (K&2 ? -8 : K&8)/8E4;
+                    A += B += (K&2 ? -8 : K&8)/6E4;
                     //V += (F&64 ? -128 : F&128)/1E3;
                     D += (K&4 ? -1 : K&1)/200;
                     Z += D; // approx: sin(x) ~ x for |x| < 0.5
