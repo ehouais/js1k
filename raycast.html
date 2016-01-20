@@ -7,6 +7,7 @@
             #fps {
                 position: absolute;
                 top: 0;
+                left: 10px;
             }
             #coords {
                 position: absolute;
@@ -70,6 +71,8 @@
             // * improved ambient occlusion
             // * layers of colors
             // * merge rect with previous if dz < dz0
+            // * protection shield: with gauge, decreases if contact, increases for audacious manoeuvers
+            // * target indicator
 
             // * precise Z/V/C calculations
             // * V = f(Z)
@@ -95,6 +98,7 @@
             A =
             S = 4;
             X = Y = 1e9;
+            O = 100;
             B =
             D =
             K = 0; // 4 bits: left|up|right|down
@@ -147,7 +151,7 @@
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
-                if (!halt) {
+                if (!halt && O > 0) {
                     A += B += K;
                     //V += (F&64 ? -128 : F&128)/1E3;
                     X += Math.cos(D)*Math.cos(A);
@@ -192,6 +196,7 @@
                         u = M[I%N][J%N];
                         e = E*(v < 0 ? x : 1-x);
                         f = F*(w < 0 ? y : 1-y);
+                        O -= u[0] > 0 && !k;
 
                         m = n = W; // current screen y coordinate
                         p = q = 20; // current color
@@ -246,6 +251,7 @@
 
                         R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
+                    R[23].push(O, S, S); // push last rect in pipe
 
                     fps(+new Date);
                     //coords.innerHTML = nr;
