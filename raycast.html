@@ -92,10 +92,9 @@
             H = (W = c.width = a.height)/2;
             M = [];
             N = 256;
-            S = 4;
-            Z = 15;
-            X = Y = 1e9; Y += N/2;
             A =
+            S = 4;
+            X = Y = 1e9;
             B =
             D =
             K = 0; // 4 bits: left|up|right|down
@@ -104,8 +103,7 @@
             halt = false;
 
             onkeydown = onkeyup = function(e) {
-                t = 1<<40-e.which;
-                e.type[5] ? K |= t : K &= ~t; // update the flag of down keys
+                K = e.which == 37 ? e.type[5] ? 1e-4 : 0 : e.which == 39 ? e.type[5] ? -1e-4 : 0 : K;
                 e.which == 32 && e.type[5] && (halt = !halt);
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
@@ -132,15 +130,15 @@
                         r = R[k];
                         k++
                     ) {
-                        //d = Math.hypot(i - r[0], j - r[1]); // if not cycling
-                        d = Math.hypot(
+                        d = Math.hypot(i - r[0], j - r[1]); // if not cycling
+                        /*d = Math.hypot(
                             Math.min(d = Math.abs(i - r[0]), Math.abs(N-d)),
                             Math.min(d = Math.abs(j - r[1]), Math.abs(N-d))
-                        );
+                        );*/
                         t.splice(2*(d > t[1])+2*(d > t[3]), 0, k, d);
                     }
                     M[i][j] = [
-                        m = (m = 1-t[1]/t[3])*m*t[0]/9,
+                        m = (m = 1-t[1]/t[3])*m*t[0]/9 - 4, // last term: fixed altitude
                         14 + 6/(Math.abs(m-n)+.8)
                     ];
                     n = m;
@@ -150,10 +148,8 @@
             setInterval(function(e) {
 
                 if (!halt) {
-                    A += B += (K&2 ? -8 : K&8)/6E4;
+                    A += B += K;
                     //V += (F&64 ? -128 : F&128)/1E3;
-                    D += (K&4 ? -1 : K&1)/200;
-                    Z += D; // approx: sin(x) ~ x for |x| < 0.5
                     X += Math.cos(D)*Math.cos(A);
                     Y += Math.cos(D)*Math.sin(A);
                     T = B*30;
@@ -193,7 +189,7 @@
                         J = 0|Y;
                         x = X-I;
                         y = Y-J;
-                        u = M[I&255][J&255];
+                        u = M[I%N][J%N];
                         e = E*(v < 0 ? x : 1-x);
                         f = F*(w < 0 ? y : 1-y);
 
@@ -224,10 +220,11 @@
                                 e-f,
                                 F
                             ];
+
                             o = 0;
-                            u = M[I&255][J&255];
+                            u = M[I%N][J%N];
                             h = g[o++] ? t[0] : u[0];
-                            h += g[o++]*(M[g[o++]&255][g[o++]&255][0] - h) - Z;
+                            h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
                             d += g[o++];
                             e = g[o++];
                             f = g[o++];
