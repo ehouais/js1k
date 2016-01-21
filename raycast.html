@@ -71,8 +71,10 @@
             // * improved ambient occlusion
             // * layers of colors
             // * merge rect with previous if dz < dz0
-            // * protection shield: with gauge, decreases if contact, increases for audacious manoeuvers
             // * target indicator
+            // * beacon/lights to show the direction / head-up indicator
+            // * permanent energy consumption
+            // * large zones: interpolate (x²-1)², (X%N)/N, (Y%N)/N ?
 
             // * precise Z/V/C calculations
             // * V = f(Z)
@@ -107,7 +109,7 @@
             halt = false;
 
             onkeydown = onkeyup = function(e) {
-                K = e.which == 37 ? e.type[5] ? 1e-4 : 0 : e.which == 39 ? e.type[5] ? -1e-4 : 0 : K;
+                K = e.which == 37 ? e.type[5] ? 2e-4 : 0 : e.which == 39 ? e.type[5] ? -2e-4 : 0 : K;
                 e.which == 32 && e.type[5] && (halt = !halt);
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
@@ -151,9 +153,8 @@
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
-                if (!halt && O > 0) {
+                if (!halt && O >= 0) {
                     A += B += K;
-                    //V += (F&64 ? -128 : F&128)/1E3;
                     X += Math.cos(D)*Math.cos(A);
                     Y += Math.cos(D)*Math.sin(A);
                     T = B*30;
@@ -198,8 +199,8 @@
                         f = F*(w < 0 ? y : 1-y);
                         O -= u[0] > 0 && !k;
 
-                        m = n = W; // current screen y coordinate
-                        p = q = 20; // current color
+                        m = n = W; // screen y coordinate (current, next)
+                        p = q = 20; // color (current, next)
 
                         for (
                             d = 0;
@@ -208,7 +209,7 @@
 
                             t = u;
 
-                            g = e < f ? [
+                            g = e < f ? [ // [x, y, I, J, d, e, f]
                                 x = v < 0,
                                 y += e*w,
                                 x ? I-- : ++I,
@@ -216,7 +217,7 @@
                                 e,
                                 E,
                                 f-e
-                            ] : [
+                            ] : [ // [y, x, I, J, d, e, f]
                                 y = w < 0,
                                 x += f*v,
                                 I+1,
@@ -227,7 +228,7 @@
                             ];
 
                             o = 0;
-                            u = M[I%N][J%N];
+                            u = M[I%N][J%N]; // next cell
                             h = g[o++] ? t[0] : u[0];
                             h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
                             d += g[o++];
