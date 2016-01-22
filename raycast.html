@@ -155,8 +155,8 @@
                 if (!halt && O) {
                     A += B += K;
                     A += 2*Math.PI*(Math.PI < -A) - 2*Math.PI*(Math.PI < A);
-                    X += Math.cos(A);
-                    Y += Math.sin(A);
+                    X += Math.cos(A-.5);
+                    Y += Math.sin(A-.5);
 
                     a.height = a.height; // canvas white reset
 
@@ -182,7 +182,7 @@
                         k < W;
                         k += S
                     ) {
-                        r = A+.5-k/W; // approx: atan(x) ~ x for |x| < 0.4
+                        r = A-k/W; // approx: atan(x) ~ x for |x| < 0.4
                         P = (k-H)*B*30+H; // roll + pitch simulation
 
                         E = 1/Math.abs(v = H*Math.cos(r));
@@ -249,7 +249,7 @@
 
                         R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
-                    R[23].push(O -= i > 0, W*(.5+A+Math.atan2(Y, -X)), S); // energy gauge + target direction
+                    R[23].push(O -= i > 0, W*(A + Math.atan2(Y, -X)), S); // energy gauge + target direction
 
                     fps(+new Date);
                 }
