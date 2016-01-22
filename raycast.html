@@ -148,8 +148,9 @@
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
-                    A = (A += B += K) + 2*Math.PI*(Math.PI < -A) - 2*Math.PI*(Math.PI < A);
                 if (!halt && O) {
+                    A += B += K;
+                    A += 2*Math.PI*(Math.PI < -A) - 2*Math.PI*(Math.PI < A);
                     X += Math.cos(A);
                     Y += Math.sin(A);
 
