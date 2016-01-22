@@ -131,23 +131,18 @@
                 for (
                     M[i] = [], n = j = 0;
                     j < N;
-                    j++
-                ) {
-                    t = [];
+                    M[i][j++] = [
+                        m = (m = 1-t[1]/t[3])*m*t[0]/9 - 4, // altitude (last term: fixed altitude)
+                        14 + 6/(Math.abs(m-n)+.8)           // color (pseudo ambient occlusion based on slope)
+                    ],
+                    n = m
+                )
                     for (
-                        k = 0;
+                        t = [], k = 0;
                         r = R[k];
-                        k++
-                    ) {
-                        d = Math.hypot(i - r[0], j - r[1]); // if not cycling
-                        t.splice(2*(d > t[1])+2*(d > t[3]), 0, k, d);
-                    }
-                    M[i][j] = [
-                        m = (m = 1-t[1]/t[3])*m*t[0]/9 - 4, // last term: fixed altitude
-                        14 + 6/(Math.abs(m-n)+.8)
-                    ];
-                    n = m;
-                }
+                        t.splice(2*(d > t[1])+2*(d > t[3]), 0, k++, d) // update distance table
+                    )
+                        d = Math.hypot(i - r[0], j - r[1]);
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
