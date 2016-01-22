@@ -102,7 +102,6 @@
             X = Y = 1e9;
             O = 100;
             B =
-            D =
             K = 0; // 4 bits: left|up|right|down
             R = [];
 
@@ -151,10 +150,8 @@
 
                 if (!halt && O >= 0) {
                     A = (A += B += K) + 2*Math.PI*(Math.PI < -A) - 2*Math.PI*(Math.PI < A);
-                    X += Math.cos(D)*Math.cos(A);
-                    Y += Math.cos(D)*Math.sin(A);
-                    T = B*30;
-                    U = H+D*600-H*T;
+                    X += Math.cos(A);
+                    Y += Math.sin(A);
 
                     a.height = a.height; // canvas white reset
 
@@ -182,7 +179,7 @@
                         k += S
                     ) {
                         r = A+.5-k/W; // approx: atan(x) ~ x for |x| < 0.4
-                        P = k*T+U; // roll + pitch simulation
+                        P = (k-H)*B*30+H; // roll + pitch simulation
 
                         E = 1/Math.abs(v = H*Math.cos(r));
                         F = 1/Math.abs(w = H*Math.sin(r));
