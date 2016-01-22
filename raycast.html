@@ -158,7 +158,7 @@
 
                     // fillrects grouped by color context
                     for (
-                        nr = k = 0;
+                        k = 0;
                         k < 32;
                         k++
                     ) {
@@ -168,7 +168,6 @@
                         for (
                             r = R[k];
                             h = r.shift();
-                            nr++
                         )
                             c.fillRect(r.shift(), r.shift(), S, h+1);
 
@@ -249,7 +248,6 @@
                     R[23].push(O, W*(.5+A+Math.atan2(Y, -X)), S); // energy gauge + target direction
 
                     fps(+new Date);
-                    //coords.innerHTML = nr;
                 }
             }, 33);
         </script>
