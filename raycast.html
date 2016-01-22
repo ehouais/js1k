@@ -137,10 +137,6 @@
                         k++
                     ) {
                         d = Math.hypot(i - r[0], j - r[1]); // if not cycling
-                        /*d = Math.hypot(
-                            Math.min(d = Math.abs(i - r[0]), Math.abs(N-d)),
-                            Math.min(d = Math.abs(j - r[1]), Math.abs(N-d))
-                        );*/
                         t.splice(2*(d > t[1])+2*(d > t[3]), 0, k, d);
                     }
                     M[i][j] = [
