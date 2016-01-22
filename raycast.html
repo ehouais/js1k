@@ -71,10 +71,10 @@
             // * improved ambient occlusion
             // * layers of colors
             // * merge rect with previous if dz < dz0
-            // * target indicator
             // * beacon/lights to show the direction / head-up indicator
             // * permanent energy consumption
             // * large zones: interpolate (x²-1)², (X%N)/N, (Y%N)/N ?
+            // * distance to target ?
 
             // * precise Z/V/C calculations
             // * V = f(Z)
@@ -94,16 +94,16 @@
                 })('fps'),
                 coords = document.getElementById('coords');
 
-            M = [];
-            N = 256;
-            A =
-            S = 4;
-            X = Y = 1e9;
-            O = 100;
-            B =
-            K = 0; // 4 bits: left|up|right|down
-            R = [];
             H = (W = a.width = a.height)/2;
+            M = [];         // terrain array
+            N = 256;        // terrain size
+            A =             // direction
+            S = 4;          // pixel column width
+            X = Y = 1e9;    // coordinates, forcd to positive values
+            O = 100;        // initial energy
+            B =             // direction 1st derivative
+            K = 0;          // direction 2nd derivative
+            R = [];         // color array
 
             halt = false;
 
@@ -113,12 +113,16 @@
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
 
+            // Voronoï terrain generation --------------------------------------
+
+            // compute random set of points
             for (
                 k = 0;
                 k < N;
             )
                 R.push([N*Math.random(k++), N*Math.random(k++)]);
 
+            // for each terrain cell, compute the two smallest distances (2nd order Voronoï)
             for (
                 i = 0;
                 i < N;
