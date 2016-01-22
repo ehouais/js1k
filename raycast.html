@@ -194,7 +194,7 @@
                         u = M[I%N][J%N];
                         e = E*(v < 0 ? x : 1-x);
                         f = F*(w < 0 ? y : 1-y);
-                        O -= u[0] > 0 && !k;
+                        i = u[0]; // altitude at player's position
 
                         m = n = W; // screen y coordinate (current, next)
                         p = q = 20; // color (current, next)
@@ -249,7 +249,7 @@
 
                         R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
-                    R[23].push(O, W*(.5+A+Math.atan2(Y, -X)), S); // energy gauge + target direction
+                    R[23].push(O -= i > 0, W*(.5+A+Math.atan2(Y, -X)), S); // energy gauge + target direction
 
                     fps(+new Date);
                 }
