@@ -154,7 +154,7 @@
             setInterval(function(e) {
 
                 if (!halt && O >= 0) {
-                    A += B += K;
+                    A = (A += B += K) + 2*Math.PI*(Math.PI < -A) - 2*Math.PI*(Math.PI < A);
                     X += Math.cos(D)*Math.cos(A);
                     Y += Math.cos(D)*Math.sin(A);
                     T = B*30;
@@ -252,7 +252,7 @@
 
                         R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
-                    R[23].push(O, S, S); // push last rect in pipe
+                    R[23].push(O, W*(.5+A+Math.atan2(Y, -X)), S); // energy gauge + target direction
 
                     fps(+new Date);
                     //coords.innerHTML = nr;
