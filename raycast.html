@@ -119,8 +119,9 @@
             for (
                 k = 0;
                 k < N;
+                k++
             )
-                R.push([N*Math.random(k++), N*Math.random(k++)]);
+                R.push([N*Math.random(), N*Math.random()]);
 
             // for each terrain cell, compute the two smallest distances (2nd order Voronoï)
             for (
@@ -131,18 +132,23 @@
                 for (
                     M[i] = [], n = j = 0;
                     j < N;
-                    M[i][j++] = [
-                        m = (m = 1-t[1]/t[3])*m*t[0]/9 - 4, // altitude (last term: fixed altitude)
-                        14 + 6/(Math.abs(m-n)+.8)           // color (pseudo ambient occlusion based on slope)
-                    ],
+                    j++,
                     n = m
-                )
+                ) {
                     for (
-                        t = [], k = 0;
+                        s = t = k = 0;
                         r = R[k];
-                        t.splice(2*(d > t[1])+2*(d > t[3]), 0, k++, d) // update distance table
-                    )
-                        d = Math.hypot(i - r[0], j - r[1]);
+                        k++
+                    ) {
+                        t += w = Math.pow(Math.hypot(i - r[0], j - r[1]), -2.2);
+                        s += k*w;
+                    }
+
+                    M[i][j] = [
+                        m = s/t/15 - 15, // altitude (last term: fixed altitude)
+                        14 + 6/(Math.abs(m-n)+.8)           // color (pseudo ambient occlusion based on slope)
+                    ];
+                }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
@@ -155,7 +161,7 @@
 
                     a.height = a.height; // canvas white reset
 
-                    // fillrects grouped by color context
+                    // draw fillrects grouped by color, to minimize number of fillStyle changes
                     for (
                         k = 0;
                         k < 32;
@@ -168,7 +174,7 @@
                             r = R[k];
                             h = r.shift();
                         )
-                            c.fillRect(r.shift(), r.shift(), S, h+1);
+                            c.fillRect(r.shift(), r.shift(), S, h+.5);
 
                     }
 
