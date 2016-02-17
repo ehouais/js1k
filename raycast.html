@@ -98,10 +98,11 @@
             M = [];         // terrain array
             N = 256;        // terrain size
             A =             // direction
-            S = 4;          // pixel column width
+            S = 3;          // pixel column width
             X = Y = 1e9;    // coordinates, forcd to positive values
             O = 100;        // initial energy
             B =             // direction 1st derivative
+            Z =             // altitude
             K = 0;          // direction 2nd derivative
             R = [];         // color array
 
@@ -118,21 +119,21 @@
             // compute random set of points
             for (
                 k = 0;
-                k < N;
+                k < N+N;
                 k++
             )
                 R.push([N*Math.random(), N*Math.random()]);
 
             // for each terrain cell, compute the two smallest distances (2nd order Voronoï)
             for (
-                i = 0;
-                i < N;
-                i++
+                I = 0;
+                I < N;
+                I++
             )
                 for (
-                    M[i] = [], n = j = 0;
-                    j < N;
-                    j++,
+                    M[I] = [], n = J = 0;
+                    J <= N;
+                    J++,
                     n = m
                 ) {
                     for (
@@ -140,22 +141,24 @@
                         r = R[k];
                         k++
                     ) {
-                        t += w = Math.pow(Math.hypot(i - r[0], j - r[1]), -2.2);
+                        t += w = Math.pow(Math.hypot(
+                            Math.min(d = Math.abs(I - r[0]), Math.abs(N-d)),
+                            Math.min(d = Math.abs(J - r[1]), Math.abs(N-d))
+                        ), -1.9);
                         s += k*w;
                     }
 
-                    M[i][j] = [
-                        m = s/t/15 - 15, // altitude (last term: fixed altitude)
-                        14 + 6/(Math.abs(m-n)+.8)           // color (pseudo ambient occlusion based on slope)
+                    M[I%N][J%N] = [
+                        m = Math.min(15, Math.max(0, s/t/7-35)), // altitude
+                        14 + 9/(Math.abs(m-n)+1)           // color (pseudo ambient occlusion based on slope)
                     ];
                 }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
-                if (!halt && O) {
+                if (!halt/* && O*/) {
                     A += B += K;
-                    A += 2*Math.PI*(Math.PI < -A) - 2*Math.PI*(Math.PI < A);
                     X += Math.cos(A-.5);
                     Y += Math.sin(A-.5);
 
@@ -178,15 +181,19 @@
 
                     }
 
+                    I = 0|X;
+                    J = 0|Y;
+                    t = Z-M[I%N][J%N][0]-3;
+                    Z -= t > 0 ? .03 : .2*t;
+
                     for (
                         k = 0;
                         k < W;
                         k += S
                     ) {
-                        r = A-k/W; // approx: atan(x) ~ x for |x| < 0.4
                         P = (k-H)*B*30+H; // roll + pitch simulation
 
-                        E = 1/Math.abs(v = H*Math.cos(r));
+                        E = 1/Math.abs(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                         F = 1/Math.abs(w = H*Math.sin(r));
                         I = 0|X;
                         J = 0|Y;
@@ -195,14 +202,13 @@
                         u = M[I%N][J%N];
                         e = E*(v < 0 ? x : 1-x);
                         f = F*(w < 0 ? y : 1-y);
-                        i = u[0]; // altitude at player's position
 
                         m = n = W; // screen y coordinate (current, next)
                         p = q = 20; // color (current, next)
 
                         for (
-                            d = 0;
-                            d < .25;
+                            l = d = 0;
+                            d < .2;
                         ) {
 
                             t = u;
@@ -233,24 +239,29 @@
                             e = g[o++];
                             f = g[o++];
 
-                            z = P-h/d; // height on screen from perspective calculations
+                            z = P-(h-Z)/d; // height on screen from perspective calculations
                             //d < .2 && Math.abs(k-H) <  10 && h > W && (W = h);
 
+                            p = 0|Math.min(31, (h+l ? p : 17) + (d > .1 && d*200-20));
+                            //r = 0|Math.min(31, u[1] + (d > .15 && d*200-30));
+
                             z < m && (
-                                p-q && (
+                                p != q && (r != q || p < r) && (
                                     n-m && R[q].push(n-m, k, n = m),
                                     q = p
                                 ),
                                 m = z
                             );
 
-                            p = 0|Math.min(31, u[1] + (d > .15 && d*200-30));
+                            //p = r;
+                            p = u[1];
+                            l = h;
 
                         }
 
                         R[q].push(n-m, k, n = m); // push last rect in pipe
                     }
-                    R[23].push(O -= i > 0, W*(A + Math.atan2(Y, -X)), S); // energy gauge + target direction
+                    //R[23].push(O -= i > 0, W*(A + Math.atan2(Y, -X)), S); // energy gauge + target direction
 
                     fps(+new Date);
                 }
