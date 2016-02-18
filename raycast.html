@@ -105,11 +105,13 @@
             Z =             // altitude
             K = 0;          // direction 2nd derivative
             R = [];         // color array
+            V = .5;
 
             halt = false;
 
             onkeydown = onkeyup = function(e) {
-                K = e.which == 37 ? e.type[5] ? 2e-4 : 0 : e.which == 39 ? e.type[5] ? -2e-4 : 0 : K;
+                t = 1<<40-e.which;
+                e.type[5] ? K |= t : K &= ~t; // update the flag of down keys
                 e.which == 32 && e.type[5] && (halt = !halt);
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
@@ -119,7 +121,7 @@
             // compute random set of points
             for (
                 k = 0;
-                k < N+N;
+                k < N;
                 k++
             )
                 R.push([N*Math.random(), N*Math.random()]);
@@ -127,7 +129,7 @@
             // for each terrain cell, compute the two smallest distances (2nd order Voronoï)
             for (
                 I = 0;
-                I < N;
+                I < 300;
                 I++
             )
                 for (
@@ -149,7 +151,7 @@
                     }
 
                     M[I%N][J%N] = [
-                        m = Math.min(15, Math.max(0, s/t/7-35)), // altitude
+                        m = Math.min(15, Math.max(0, s/t/5-22)), // altitude
                         14 + 9/(Math.abs(m-n)+1)           // color (pseudo ambient occlusion based on slope)
                     ];
                 }
@@ -158,9 +160,10 @@
             setInterval(function(e) {
 
                 if (!halt/* && O*/) {
-                    A += B += K;
-                    X += Math.cos(A-.5);
-                    Y += Math.sin(A-.5);
+                    V -= (K&4 ? -1 : K&1)/1E2;
+                    A += B += (K&2 ? -8 : K&8)/5E4;
+                    X += V*Math.cos(A-.5);
+                    Y += V*Math.sin(A-.5);
 
                     a.height = a.height; // canvas white reset
 
@@ -184,14 +187,14 @@
                     I = 0|X;
                     J = 0|Y;
                     t = Z-M[I%N][J%N][0]-3;
-                    Z -= t > 0 ? .03 : .2*t;
+                    Z -= t > 0 ? .03 : .1*V*t;
 
                     for (
                         k = 0;
                         k < W;
                         k += S
                     ) {
-                        P = (k-H)*B*30+H; // roll + pitch simulation
+                        P = V*(k-H)*B*30+H; // roll + pitch simulation
 
                         E = 1/Math.abs(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                         F = 1/Math.abs(w = H*Math.sin(r));
@@ -208,7 +211,7 @@
 
                         for (
                             l = d = 0;
-                            d < .2;
+                            d < .25;
                         ) {
 
                             t = u;
@@ -242,11 +245,11 @@
                             z = P-(h-Z)/d; // height on screen from perspective calculations
                             //d < .2 && Math.abs(k-H) <  10 && h > W && (W = h);
 
-                            p = 0|Math.min(31, (h+l ? p : 17) + (d > .1 && d*200-20));
+                            p = 0|Math.min(31, (h+l ? p : 18) + (d > .15 && d*200-30));
                             //r = 0|Math.min(31, u[1] + (d > .15 && d*200-30));
 
                             z < m && (
-                                p != q && (r != q || p < r) && (
+                                p != q/* && (r != q || p < r)*/ && (
                                     n-m && R[q].push(n-m, k, n = m),
                                     q = p
                                 ),
