@@ -88,6 +88,7 @@
                 })('fps');
 
             H = (W = a.width = a.height)/2;
+            C = a.width/a.height/2;
             M = [];         // terrain array
             N = 256;        // terrain size
             S = 3;          // pixel column width
@@ -237,7 +238,7 @@
                             e = g[o++];
                             f = g[o++];
 
-                            z = P-(h-Z)/d; // height on screen from perspective calculations
+                            z = P-(h-Z)*C/d; // height on screen from perspective calculations
 
                             p = 0|(h+l ? p : 14) + (d > 0.1 && d*200-20);
 
