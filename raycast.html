@@ -97,7 +97,7 @@
             B =             // direction 1st derivative
             D =
             K =             // keyboard state
-            V =             // speed
+            //V =             // speed
             // G            // biome
             T =             // time
             Z = 0;          // altitude
@@ -162,18 +162,18 @@
             setInterval(function(e) {
 
                 if (!halt) {
-                    V -= (K&4 ? -1 : K&1)/3E2;
                     G = M[T++>>9&3]; // biome = f(t)
+                    //V -= (K&4 ? -1 : K&1)/3E2;
                     A += B += (K&2 ? -8 : K&8)/4E4;
-                    X += V*Math.cos(r = A-0.5);
-                    Y += V*Math.sin(r);
+                    X += 0.6*Math.cos(r = A-0.5);
+                    Y += 0.6*Math.sin(r);
                     I = 0|X;
                     J = 0|Y;
-                    t = Z-u[0]-2-V;
-                    Z -= t < 0 ? 0.1*V*t : 0.03;
                     /*Z += (D += (K&256 && 7) - 1)/1E3;
                     Z < u[0]+1 && (
                     u = G[I%N][J%N];
+                    t = Z-u[0]-3;
+                    Z -= t < 0 ? 0.1*t : 0.03;
                         Z = u[0]+1,
                         D = -D/3,
                         B /= 2,
@@ -199,8 +199,8 @@
                         k < W;
                         k += S
                     ) {
-                        P = V*(k-H)*B*30+H; // roll + pitch simulation
                         S = 0|8*Math.hypot(k-H)/H+2;
+                        P = (k-H)*B*30+H; // roll + pitch simulationH
 
                         E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                         F = 1/Math.hypot(w = H*Math.sin(r));
