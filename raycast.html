@@ -41,39 +41,18 @@
             // * biomes: plain+fields+fences+raods+villages, monument valley+canyon+river,
             // * biomes: mountains+forests+rivers+castles+snow, ocean+cliffs+beaches+islands, city+skyscrapers+streets
             // * clouds
-            // * keep aspect ratio
-            // * more colors
-            // * one-dimension array for fillRects
-            // * targets to shoot ?
             // * primary color (2nd background) = f(biome)
-            // * multi-level Voronoï
-            // * collision detection
             // * variable background color
             // * autopilot, auto-height
-            // * world switch when contact with item (light column ?)
             // * world seed => set of generation params (see level, montain shape & height, plateau height)
-            // * poor perfs over water
-            // * water color = f(depth) + foam
             // * buildings
-            // * fog = f(z-h)
-            // * variable LOD
-            // * better perfs => less fillRects
-            // * force cos(r) always > 0
-            // * force X, Y always > 0
-            // * progressive terrain generation
-            // * terrain profile = f(I,J)
-            // * profiles: flat, sea level, canyon, plateau
-            // * transition between profiles (cos x)
-            // * improved ambient occlusion
             // * layers of colors
-            // * merge rect with previous if dz < dz0
             // * beacon/lights to show the direction / head-up indicator
             // * permanent energy consumption
-            // * traces on the ground
             // * random generation parameters
             // * icebergs, forests
-            // * Multi-layer generation
-            // * landing zone
+            // * white line bug
+            // * raycast bands bottom: low-res / middle: high-res
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -90,17 +69,15 @@
             H = (W = a.width = a.height)/2;
             C = a.width/a.height/2;
             M = [];         // terrain array
-            N = 256;        // terrain size
+            N = 128;        // terrain size
+            D = N*1.6;
             //S             // variable pixel column width
             X = Y = 1e9;    // coordinates, forcd to positive values
             A =             // direction
             B =             // direction 1st derivative
-            D =
-            K =             // keyboard state
-            //V =             // speed
-            // G            // biome
-            T =             // time
-            Z = 0;          // altitude
+            K = 0;          // keyboard state
+            Z = 6;          // altitude
+            V = 0.6;            // speed
             R = [];         // color array
 
             halt = false;
@@ -117,63 +94,56 @@
             // compute random set of points
             for (
                 I = 0;
-                I < N;
+                I < D;
                 I++
             )
                 R.push([N*Math.random(), N*Math.random()]);
 
             // for each terrain intersection, compute the height
             for (
-                e = 0;
-                e < 4;
-                e++
+                I = 0;
+                I < N;
+                I++
             )
                 for (
-                    M[e] = [], I = 0;
-                    I < N;
-                    I++
-                )
+                    M[I] = [], n = 0, J = N;
+                    J;
+                    J--,
+                    n = m
+                ) {
                     for (
-                        M[e][I] = [], n = J = 0;
-                        J <= N;
-                        J++,
-                        n = m
+                        s = t = k = 0;
+                        r = R[k];
+                        k++
                     ) {
-                        for (
-                            s = t = k = 0;
-                            r = R[k];
-                            k++
-                        ) {
-                            d = Math.hypot(
-                                Math.min(d = Math.hypot(I - r[0]), Math.hypot(N-d)),
-                                Math.min(d = Math.hypot(J - r[1]), Math.hypot(N-d))
-                            );
-                            t += w = Math.pow(d, -1-e-e*Math.random()/3);
-                            s += k*w;
-                        }
-
-                        M[e][I%N][J%N] = [
-                            m = Math.min(20, Math.max(0, s/t/3-12-e*2)), // altitude
-                            11 + 9/(Math.hypot(m-n)+1)           // color (pseudo ambient occlusion based on slope)
-                        ];
+                        t += w = Math.pow(Math.hypot(
+                            Math.min(d = Math.hypot(I - r[0]), Math.hypot(N-d)),
+                            Math.min(d = Math.hypot(J - r[1]), Math.hypot(N-d))
+                        ), -1.6/*-Math.random()/4*/);
+                        s += (k-D/2)*w;
                     }
+
+                    M[I][J%N] = [
+                        m = Math.min(17, Math.max(0, s/t/3+2+(Math.random() < 0.1 && 0.1))), // altitude
+                        17 - 5*Math.atan(m-n) // color (pseudo ambient occlusion based on slope)
+                    ]
+                }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
                 if (!halt) {
-                    G = M[T++>>9&3]; // biome = f(t)
                     //V -= (K&4 ? -1 : K&1)/3E2;
                     A += B += (K&2 ? -8 : K&8)/4E4;
-                    X += 0.6*Math.cos(r = A-0.5);
-                    Y += 0.6*Math.sin(r);
-                    I = 0|X;
-                    J = 0|Y;
-                    /*Z += (D += (K&256 && 7) - 1)/1E3;
-                    Z < u[0]+1 && (
-                    u = G[I%N][J%N];
+                    X += V*Math.cos(r = A-0.5);
+                    Y += V*Math.sin(r);
+                    //I = 0|X;
+                    //J = 0|Y;
+                    //Z -= (K&4 ? -1 : K&1)/10;
+                    /*u = M[I%N][J%N];
                     t = Z-u[0]-3;
                     Z -= t < 0 ? 0.1*t : 0.03;
+                    Z < u[0]+1 && (
                         Z = u[0]+1,
                         D = -D/3,
                         B /= 2,
@@ -192,21 +162,21 @@
                             c.fillStyle = 'rgb('+(k<<3)+','+(k<<3)+','+(k<<3)+')';
                             h = r.shift();
                         )
-                            c.fillRect(r.shift(), r.shift(), r.shift(), h+0.5);
+                            c.fillRect(r.shift(), r.shift(), r.shift(), h+1);
 
                     for (
                         k = 0;
                         k < W;
                         k += S
                     ) {
-                        S = 0|8*Math.hypot(k-H)/H+2;
-                        P = (k-H)*B*30+H; // roll + pitch simulationH
+                        S = 0|6*Math.hypot(k-H)/H+3;
+                        P = V*(k-H)*B*30+H; // roll + pitch simulationH
 
                         E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                         F = 1/Math.hypot(w = H*Math.sin(r));
                         I = 0|X;
                         J = 0|Y;
-                        u = G[I%N][J%N];
+                        u = M[I%N][J%N];
                         x = X-I;
                         y = Y-J;
                         e = E*(v < 0 ? x : 1-x);
@@ -217,7 +187,7 @@
 
                         for (
                             l = d = 0;
-                            d < 0.2;
+                            d < 0.25;
                         ) {
 
                             t = u;
@@ -241,16 +211,16 @@
                             ];
 
                             o = 0;
-                            u = G[I%N][J%N]; // next cell
+                            u = M[I%N][J%N]; // next cell
                             h = g[o++] ? t[0] : u[0];
-                            h += g[o++]*(G[g[o++]%N][g[o++]%N][0] - h);
+                            h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
                             d += g[o++];
                             e = g[o++];
                             f = g[o++];
 
                             z = P-(h-Z)*C/d; // height on screen from perspective calculations
 
-                            p = 0|(h+l ? p : 14) + (d > 0.1 && d*200-20);
+                            p = 0|(h+l ? p : 13) + (d > 0.15 && d*200-30);
 
                             z < m && (
                                 p-q && n-m && R[q].push(n-m, k, n = m, S),
