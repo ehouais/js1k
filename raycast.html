@@ -98,6 +98,8 @@
             D =
             K =             // keyboard state
             V =             // speed
+            // G            // biome
+            T =             // time
             Z = 0;          // altitude
             R = [];         // color array
 
@@ -122,49 +124,56 @@
 
             // for each terrain intersection, compute the height
             for (
-                I = 0;
-                I < N;
-                I++
+                e = 0;
+                e < 4;
+                e++
             )
                 for (
-                    M[I] = [], n = J = 0;
-                    J <= N;
-                    J++,
-                    n = m
-                ) {
+                    M[e] = [], I = 0;
+                    I < N;
+                    I++
+                )
                     for (
-                        s = t = k = 0;
-                        r = R[k];
-                        k++
+                        M[e][I] = [], n = J = 0;
+                        J <= N;
+                        J++,
+                        n = m
                     ) {
-                        t += w = Math.pow(Math.hypot(
-                            Math.min(d = Math.hypot(I - r[0]), Math.hypot(N-d)),
-                            Math.min(d = Math.hypot(J - r[1]), Math.hypot(N-d))
-                        ), -2.5-Math.random());
-                        s += k*w;
-                    }
+                        for (
+                            s = t = k = 0;
+                            r = R[k];
+                            k++
+                        ) {
+                            d = Math.hypot(
+                                Math.min(d = Math.hypot(I - r[0]), Math.hypot(N-d)),
+                                Math.min(d = Math.hypot(J - r[1]), Math.hypot(N-d))
+                            );
+                            t += w = Math.pow(d, -1-e-e*Math.random()/3);
+                            s += k*w;
+                        }
 
-                    M[I%N][J%N] = [
-                        m = Math.min(20, Math.max(0, s/t/5-22)), // altitude
-                        11 + 9/(Math.hypot(m-n)+1)           // color (pseudo ambient occlusion based on slope)
-                    ];
-                }
+                        M[e][I%N][J%N] = [
+                            m = Math.min(20, Math.max(0, s/t/3-12-e*2)), // altitude
+                            11 + 9/(Math.hypot(m-n)+1)           // color (pseudo ambient occlusion based on slope)
+                        ];
+                    }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
 
                 if (!halt) {
                     V -= (K&4 ? -1 : K&1)/3E2;
+                    G = M[T++>>9&3]; // biome = f(t)
                     A += B += (K&2 ? -8 : K&8)/4E4;
                     X += V*Math.cos(r = A-0.5);
                     Y += V*Math.sin(r);
                     I = 0|X;
                     J = 0|Y;
-                    u = M[I%N][J%N];
                     t = Z-u[0]-2-V;
                     Z -= t < 0 ? 0.1*V*t : 0.03;
                     /*Z += (D += (K&256 && 7) - 1)/1E3;
                     Z < u[0]+1 && (
+                    u = G[I%N][J%N];
                         Z = u[0]+1,
                         D = -D/3,
                         B /= 2,
@@ -196,7 +205,7 @@
                         F = 1/Math.hypot(w = H*Math.sin(r));
                         I = 0|X;
                         J = 0|Y;
-                        u = M[I%N][J%N];
+                        u = G[I%N][J%N];
                         x = X-I;
                         y = Y-J;
                         e = E*(v < 0 ? x : 1-x);
@@ -231,9 +240,9 @@
                             ];
 
                             o = 0;
-                            u = M[I%N][J%N]; // next cell
+                            u = G[I%N][J%N]; // next cell
                             h = g[o++] ? t[0] : u[0];
-                            h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
+                            h += g[o++]*(G[g[o++]%N][g[o++]%N][0] - h);
                             d += g[o++];
                             e = g[o++];
                             f = g[o++];
