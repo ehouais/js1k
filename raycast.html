@@ -91,7 +91,7 @@
             C = a.width/a.height/2;
             M = [];         // terrain array
             N = 256;        // terrain size
-            S = 3;          // pixel column width
+            //S             // variable pixel column width
             X = Y = 1e9;    // coordinates, forcd to positive values
             A =             // direction
             B =             // direction 1st derivative
@@ -192,7 +192,7 @@
                             c.fillStyle = 'rgb('+(k<<3)+','+(k<<3)+','+(k<<3)+')';
                             h = r.shift();
                         )
-                            c.fillRect(r.shift(), r.shift(), S, h+0.5);
+                            c.fillRect(r.shift(), r.shift(), r.shift(), h+0.5);
 
                     for (
                         k = 0;
@@ -200,6 +200,7 @@
                         k += S
                     ) {
                         P = V*(k-H)*B*30+H; // roll + pitch simulation
+                        S = 0|8*Math.hypot(k-H)/H+2;
 
                         E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                         F = 1/Math.hypot(w = H*Math.sin(r));
@@ -252,7 +253,7 @@
                             p = 0|(h+l ? p : 14) + (d > 0.1 && d*200-20);
 
                             z < m && (
-                                p-q && n-m && R[q].push(n-m, k, n = m),
+                                p-q && n-m && R[q].push(n-m, k, n = m, S),
                                 q = p,
                                 m = z
                             );
@@ -262,7 +263,7 @@
 
                         }
 
-                        R[q].push(n-m, k, n = m); // push last rect in pipe
+                        R[q].push(n-m, k, n = m, S); // push last rect in pipe
                     }
 
                     fps(+new Date);
