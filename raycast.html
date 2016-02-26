@@ -48,7 +48,7 @@
             // * random generation parameters
             // * icebergs, forests
             // * raycast bands bottom: low-res / middle: high-res
-            // * compensate skew
+            // * S = f(W, ...)
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -62,16 +62,20 @@
                     };
                 })('fps');
 
-            H = (W = c.width = a.height)/2;
+            W = a.height;
+            a.style.width = (a.width = W) + 'px';
+            H = W/2;
+            D = 200/H;
+            V = D/2;
             M = [];         // terrain array
-            N = 170;        // terrain size => nb. points = 220
+            N = 250;        // terrain size => nb. points = 220
             //S             // variable pixel column width
             X = Y = 1e9;    // coordinates, forcd to positive values
-            A = 4;          // direction
+            Z =             // altitude
+            A = 3;          // direction
             B =             // direction 1st derivative
             K = 0;          // keyboard state
-            Z = 7;      // altitude
-            V = 0.7;        // speed
+            //V = 1;        // speed
             R = [];         // color array
 
             onkeydown = onkeyup = function(e) {
@@ -84,11 +88,11 @@
 
             // compute random set of points
             for (
-                I = 0;
-                I < 220;
-                I++
+                k = 0;
+                k < 300;
+                k++
             )
-                R.push([N*Math.random(), N*Math.random()]);
+                R[k] = [N*Math.random(), N*Math.random()];
 
             // for each terrain intersection, compute the height
             for (
@@ -104,50 +108,50 @@
                 ) {
                     for (
                         s = t = k = 0;
-                        r = R[k];
+                        u = R[k];
                         k++
                     ) {
                         t += w = Math.pow(Math.hypot(
-                            Math.min(d = Math.hypot(I - r[0]), Math.hypot(N-d)),
-                            Math.min(d = Math.hypot(J - r[1]), Math.hypot(N-d))
-                        ), -2.5);
-                        s += (k-110)*w;
+                            Math.min(d = Math.hypot(I - u[0]), Math.hypot(N-d)),
+                            Math.min(d = Math.hypot(J - u[1]), Math.hypot(N-d))
+                        ), -2.3);
+                        s += (k-130)*w;
                     }
 
-                    M[I][J%N] = [
-                        m = Math.max(0, s/t/9+2+(Math.random() < 0.12 && Math.random())), // altitude
-                        15 - 6*Math.atan(m-n) // color (pseudo ambient occlusion based on slope)
+                    M[I%N][J%N] = [
+                        m = Math.max(0, s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
+                        15 + 6*Math.atan(n-m) // color (pseudo ambient occlusion based on slope)
                     ]
                 }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
-                V -= (K&4 ? -1 : K&1)/1E2;
+                //V -= (K&4 ? -1 : K&1)/1E2;
                 A += B += (K&2 ? -8 : K&8)/4E4;
-                X += V*Math.cos(r = A-0.5);
-                Y += V*Math.sin(r);
+                X += /*V**/Math.cos(r = A-0.5);
+                Y += /*V**/Math.sin(r);
 
                 a.height = a.height; // canvas white reset
 
                 // draw fillrects grouped by color, to minimize number of fillStyle changes
                 for (
                     k = 0;
-                    r = R[k];
+                    u = R[k];
                     k++
                 )
                     for (
                         c.fillStyle = 'rgb('+(k<<3)+','+(k<<3)+','+(k<<3)+')';
-                        h = r.shift();
+                        h = u.shift();
                     )
-                        c.fillRect(r.shift(), r.shift(), r.shift(), h+1);
+                        c.fillRect(u.shift(), u.shift(), u.shift(), h+1);
 
                 for (
                     k = 0;
                     k < W;
                     k += S
                 ) {
-                    S = 0|9*Math.hypot(k-H)/H+2;
-                    P = V*(k-H)*B*30+H; // roll + pitch simulationH
+                    S = 0|8*Math.hypot(1-k/H)+2;
+                    P = /*V**/(k-H)*B*30+H; // roll + pitch simulationH
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                     F = 1/Math.hypot(w = H*Math.sin(r));
@@ -159,12 +163,14 @@
                     e = E*(v < 0 ? x : 1-x);
                     f = F*(w < 0 ? y : 1-y);
 
-                    m = n = W; // screen y coordinate (current, next)
-                    p = q = u[1]; // color (current, next)
+                    n = m = W; // screen y coordinate (current, next)
+                    q = p = u[1]; // color (current, next)
+
+                    j = u[0]+4-Z;
 
                     for (
                         l = d = 0;
-                        d < 0.3;
+                        d < D;
                     ) {
 
                         t = u;
@@ -190,14 +196,15 @@
                         o = 0;
                         u = M[I%N][J%N]; // next cell
                         h = g[o++] ? t[0] : u[0];
-                        h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
+                        d > V ? (o += 3) : (h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h));
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
 
                         z = P-(h-Z)/d; // height on screen from perspective calculations
 
-                        p = 0|(h+l ? p : 10) + (d > 0.2 && d*250-50);
+                        p = h+l ? p : 10;
+                        p = 0|p + (d > V && (d - V)*(32 - p)/V);
 
                         z < m && (
                             p-q && n-m && R[q].push(n-m, k, n = m, S),
@@ -213,6 +220,7 @@
                     R[q].push(n-m, k, n = m, S); // push last rect in pipe
                 }
 
+                Z += j/20;
                 fps(+new Date);
             }, 33);
         </script>
