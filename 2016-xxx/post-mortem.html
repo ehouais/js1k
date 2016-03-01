@@ -149,7 +149,7 @@
                     }
                     return T;
                 },
-                raycast = function(terrain, X, Y, angle, dmax, params) {
+                raycast = function(terrain, X, Y, angle, dmax, projection, params) {
                     var N = terrain.length,
                         v = Math.cos(angle),
                         w = Math.sin(angle),
@@ -199,7 +199,7 @@
                         e = g[o++];
                         f = g[o++];
 
-                        z = (I+x-X+J+y-Y)/2+h; // height on screen from perspective calculations
+                        z = projection(d, 0/*h*/); // height on screen from perspective calculations
 
                         p = 0|h+l ? 15+6*p : 10;
 
@@ -221,6 +221,9 @@
 
                     return rects;
                 },
+                isoProjection = function(distance, height) {
+                    return distance*Math.SQRT1_2+height;
+                },
                 isoRender = function(terrain, canvas, params) {
                     var W = canvas.width,
                         H = canvas.height,
@@ -237,29 +240,30 @@
                         l = N*(x-w)/(w-margin);
                         i = Math.max(0, l);
                         j = Math.max(0, -l);
-                        rects = raycast(terrain, i, j, Math.PI/4, 2*(N-i-j)*Math.cos(Math.PI/4), params);
-                        y = H-margin-(i+j)/2;
+                        rects = raycast(terrain, i, j, Math.PI/4, 2*(N-i-j)*Math.cos(Math.PI/4), isoProjection, {});
+                        y = isoProjection((i+j)*Math.SQRT2, 0);
                         rects.forEach(function(rect) {
                             color = rect[0]<<3;
                             ctx.fillStyle = 'rgb('+color+','+color+','+color+')';
                             y -= h = rect[1];
-                            ctx.fillRect(x, y, 2, h);
+                            ctx.fillRect(x, H-margin-y, 2, h);
                         });
                     }
                 };
 
-            var t = terrain(points(150), {
-                    size: 100,
+            var
+                t = terrain(points(10), {
+                    size: 10,
                     seamless: true,
                     power: -2,
                     factor: 1/9,
                     minAlt: 0,
                     maxAlt: 20,
                     rocks: true
-                });
-            var canvas = document.getElementById('iso');
+                }),
+                canvas = document.getElementById('iso');
 
-            isoRender(t, canvas, {size: 100});
+            isoRender(t, canvas, {size: 10});
         </script>
     </body>
 </html>
