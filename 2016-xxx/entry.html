@@ -66,8 +66,8 @@
             W = a.height;
             a.style.width = (a.width = W) + 'px';
             H = W/2;
-            D = 200/H;
-            V = D/2;
+            D = 170/H;
+            L = D/2;
             M = [];         // terrain array
             N = 250;        // terrain size => nb. points = 220
             //S             // variable pixel column width
@@ -78,6 +78,7 @@
             K = 0;          // keyboard state
             //V = 1;        // speed
             R = [];         // color array
+            C = 1+5*Math.random();
 
             onkeydown = onkeyup = function(e) {
                 t = 1<<40-e.which;
@@ -90,7 +91,7 @@
             // compute random set of points
             for (
                 k = 0;
-                k < 300;
+                k < 350;
                 k++
             )
                 R[k] = [N*Math.random(), N*Math.random()];
@@ -115,12 +116,12 @@
                         t += w = Math.pow(Math.hypot(
                             Math.min(d = Math.hypot(I - u[0]), Math.hypot(N-d)),
                             Math.min(d = Math.hypot(J - u[1]), Math.hypot(N-d))
-                        ), -2.3);
-                        s += (k-130)*w;
+                        ), -C);
+                        s += (k-150)*w;
                     }
 
                     M[I%N][J%N] = [
-                        m = Math.max(0, s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
+                        m = Math.max(0, Math.min(20, 200-2*Math.hypot(I-N/2, J-N/2)), s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
                         15 + 6*Math.atan(n-m) // color (pseudo ambient occlusion based on slope)
                     ]
                 }
@@ -151,7 +152,7 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|8*Math.hypot(1-k/H)+2;
+                    S = 0|H/100*Math.hypot(1-k/H)+H/200;
                     P = /*V**/(k-H)*B*30+H; // roll + pitch simulationH
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
@@ -197,7 +198,7 @@
                         o = 0;
                         u = M[I%N][J%N]; // next cell
                         h = g[o++] ? t[0] : u[0];
-                        d > V ? (o += 3) : (h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h));
+                        h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
@@ -205,7 +206,7 @@
                         z = P-(h-Z)/d; // height on screen from perspective calculations
 
                         p = h+l ? p : 10;
-                        p = 0|p + (d > V && (d - V)*(32 - p)/V);
+                        p = 0|p + (d > L && (d - L)*(32 - p)/L);
 
                         z < m && (
                             p-q && n-m && R[q].push(n-m, k, n = m, S),
