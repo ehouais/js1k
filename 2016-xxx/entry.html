@@ -4,6 +4,9 @@
         <title>Raycaster</title>
         <meta charset="utf-8" />
         <style>
+            body {
+                text-align: center;
+            }
             #fps {
                 position: absolute;
                 top: 0;
@@ -63,22 +66,22 @@
                     };
                 })('fps');
 
-            W = a.height;
+            H = a.height/2;
+            W = H*2.5;
             a.style.width = (a.width = W) + 'px';
-            H = W/2;
             D = 170/H;
             L = D/2;
             M = [];         // terrain array
             N = 250;        // terrain size => nb. points = 220
             //S             // variable pixel column width
-            X = Y = 1e9;    // coordinates, forcd to positive values
+            X = Y = 1e9;    // coordinates, forced to positive values
             Z =             // altitude
             A = 3;          // direction
             B =             // direction 1st derivative
             K = 0;          // keyboard state
-            //V = 1;        // speed
             R = [];         // color array
-            C = 1+5*Math.random();
+            V = 1;
+            C = 1.7+Math.random();
 
             onkeydown = onkeyup = function(e) {
                 t = 1<<40-e.which;
@@ -121,28 +124,31 @@
                     }
 
                     M[I%N][J%N] = [
-                        m = Math.max(0, Math.min(20, 200-2*Math.hypot(I-N/2, J-N/2)), s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
-                        15 + 6*Math.atan(n-m) // color (pseudo ambient occlusion based on slope)
+                        m = Math.max(0/*, Math.min(20, 200-2*Math.hypot(I-N/2, J-N/2))*/, s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
+                        9 + 5*Math.atan(n-m)
                     ]
                 }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
-                //V -= (K&4 ? -1 : K&1)/1E2;
+                //V += 2E-3;
                 A += B += (K&2 ? -8 : K&8)/4E4;
-                X += /*V**/Math.cos(r = A-0.5);
-                Y += /*V**/Math.sin(r);
+                X += V*Math.cos(r = A-0.5);
+                Y += V*Math.sin(r);
 
                 a.height = a.height; // canvas white reset
 
                 // draw fillrects grouped by color, to minimize number of fillStyle changes
                 for (
                     k = 0;
-                    u = R[k];
+                    k < 50;
                     k++
                 )
                     for (
-                        c.fillStyle = 'rgb('+(k<<3)+','+(k<<3)+','+(k<<3)+')';
+                        u = R[k],
+                        //c.fillStyle = 'rgb('+(k<<3)+','+(k<<3)+','+(k<<3)+')';
+                        c.fillStyle = 'hsl(30,45%,'+k*3+'%)';
+                        //t = (k<<3).toString(16), c.fillStyle = '#'+t+t+t;
                         h = u.shift();
                     )
                         c.fillRect(u.shift(), u.shift(), u.shift(), h+1);
@@ -152,8 +158,8 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|H/100*Math.hypot(1-k/H)+H/200;
-                    P = /*V**/(k-H)*B*30+H; // roll + pitch simulationH
+                    S = 0|Math.hypot(W/2-k)/50+2;
+                    P = V*(k-H)*B*50+H; // roll + pitch simulationH
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                     F = 1/Math.hypot(w = H*Math.sin(r));
@@ -205,8 +211,8 @@
 
                         z = P-(h-Z)/d; // height on screen from perspective calculations
 
-                        p = h+l ? p : 10;
-                        p = 0|p + (d > L && (d - L)*(32 - p)/L);
+                        p = h+l ? p : 4;
+                        p = 0|p + (d > L && (d - L)*(33 - p)/L); // D-L=L since L=D/2
 
                         z < m && (
                             p-q && n-m && R[q].push(n-m, k, n = m, S),
