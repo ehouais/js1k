@@ -74,18 +74,17 @@
             M = [];         // terrain array
             N = 250;        // terrain size => nb. points = 220
             //S             // variable pixel column width
-            X = Y = 1e9;    // coordinates, forced to positive values
-            Z =             // altitude
-            A = 3;          // direction
+            X = 1e9;    // coordinates, forced to positive values
+            A = 1.7;        // direction
+            Y =
             B =             // direction 1st derivative
+            Z =             // altitude
+            V =             // speed
             K = 0;          // keyboard state
             R = [];         // color array
-            V = 1;
-            C = 1.7+Math.random();
 
             onkeydown = onkeyup = function(e) {
-                t = 1<<40-e.which;
-                e.type[5] ? K |= t : K &= ~t; // update the flag of down keys
+                K = e.which == 37 ? e.type[5] ? 2e-4 : 0 : e.which == 39 ? e.type[5] ? -2e-4 : 0 : K;
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
 
@@ -119,23 +118,18 @@
                         t += w = Math.pow(Math.hypot(
                             Math.min(d = Math.hypot(I - u[0]), Math.hypot(N-d)),
                             Math.min(d = Math.hypot(J - u[1]), Math.hypot(N-d))
-                        ), -C);
+                        ), -2);
                         s += (k-150)*w;
                     }
 
                     M[I%N][J%N] = [
-                        m = Math.max(0/*, Math.min(20, 200-2*Math.hypot(I-N/2, J-N/2))*/, s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
-                        9 + 5*Math.atan(n-m)
+                        m = Math.max(0, s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
+                        8 - 5*Math.atan(n-m)
                     ]
                 }
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
-                //V += 2E-3;
-                A += B += (K&2 ? -8 : K&8)/4E4;
-                X += V*Math.cos(r = A-0.5);
-                Y += V*Math.sin(r);
-
                 a.height = a.height; // canvas white reset
 
                 // draw fillrects grouped by color, to minimize number of fillStyle changes
@@ -146,9 +140,7 @@
                 )
                     for (
                         u = R[k],
-                        //c.fillStyle = 'rgb('+(k<<3)+','+(k<<3)+','+(k<<3)+')';
-                        c.fillStyle = 'hsl(30,45%,'+k*3+'%)';
-                        //t = (k<<3).toString(16), c.fillStyle = '#'+t+t+t;
+                        c.fillStyle = 'hsl(25,50%,'+k*3+'%)';
                         h = u.shift();
                     )
                         c.fillRect(u.shift(), u.shift(), u.shift(), h+1);
@@ -205,13 +197,14 @@
                         u = M[I%N][J%N]; // next cell
                         h = g[o++] ? t[0] : u[0];
                         h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
+                        J == 500 && (h = Math.max(h, 29*(I%20 == 0)));
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
 
                         z = P-(h-Z)/d; // height on screen from perspective calculations
 
-                        p = h+l ? p : 4;
+                        p = h+l ? p : 3;
                         p = 0|p + (d > L && (d - L)*(33 - p)/L); // D-L=L since L=D/2
 
                         z < m && (
@@ -228,7 +221,12 @@
                     R[q].push(n-m, k, n = m, S); // push last rect in pipe
                 }
 
+                V += (1-V)/200-V*(j > 4)*j/20;
+                A += B += K;
+                X += V*Math.cos(r = A-0.5);
+                Y += V*Math.sin(r);
                 Z += j/20;
+
                 fps(+new Date);
             }, 33);
         </script>
