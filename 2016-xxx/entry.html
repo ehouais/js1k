@@ -37,12 +37,13 @@
             var c = a.getContext('2d');
         </script>
         <script>
-            // * buildings beyond fence
             // * raycast bands bottom: low-res / middle: high-res
             // * use Math.{clz32, cbrt, expm1/log1p, hyp functions}
-            // * focused area = f(A)
-            // * dust storm
-            // * rising fence
+            // * V = f(A)
+            // * transparent fence
+            // * better-looking base
+            // * track back landmark
+            // * water level
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -64,18 +65,15 @@
             M = [];         // terrain array
             N = 250;        // terrain size => nb. points = 220
             //S             // variable pixel column width
-            X = 1e9;    // coordinates, forced to positive values
             A = 2;        // direction
-            Y =
             B =             // direction 1st derivative
             Z =             // altitude
             V =             // speed
-            T =
             K = 0;          // keyboard state
             R = [];         // color array
 
             onkeydown = onkeyup = function(e) {
-                K = e.which == 37 ? e.type[5] ? 2e-4 : 0 : e.which == 39 ? e.type[5] ? -2e-4 : 0 : K;
+                K = e.which == 37 ? e.type[5] ? 2E-4 : 0 : e.which == 39 ? e.type[5] ? -2E-4 : 0 : K;
                 //e.preventDefault(); // to make iframe integration easier, not part of the actual js1k entry
             };
 
@@ -103,21 +101,24 @@
                 ) {
                     for (
                         s = t = k = 0;
-                        u = R[k];
+                        Q = R[k];
                         k++
                     ) {
                         t += w = Math.pow(Math.hypot(
-                            Math.min(d = Math.hypot(I - u[0]), Math.hypot(N-d)),
-                            Math.min(d = Math.hypot(J - u[1]), Math.hypot(N-d))
+                            Math.min(i = Math.hypot(I-Q[0]), Math.hypot(N-i)),
+                            Math.min(i = Math.hypot(J-Q[1]), Math.hypot(N-i))
                         ), -2);
                         s += k*w;
                     }
 
                     M[I%N][J%N] = [
                         m = s/t/9+(Math.random() < 0.1 && Math.random()), // altitude
+                        4*(0|m/4),
                         8 - 5*Math.atan(n-m)
                     ]
                 }
+
+            Q = [X = 1E9, Y = 1E9];    // coordinates, forced to positive values
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
@@ -141,7 +142,7 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|Math.hypot(W/2-k)/50+2;
+                    S = 0|Math.hypot(W/2-k-B*4E4)/50+2;
                     P = V*(k-H)*B*50+H; // roll + pitch simulationH
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
@@ -155,9 +156,9 @@
                     f = F*(w < 0 ? y : 1-y);
 
                     n = m = W; // screen y coordinate (current, next)
-                    q = p = u[1]; // color (current, next)
+                    q = p = u[2]; // color (current, next)
 
-                    j = u[0]+4-Z;
+                    j = u[0]+5-Z;
 
                     for (
                         l = d = 0;
@@ -183,19 +184,20 @@
                             e-f,
                             F
                         ];
+                        i = Math.hypot(I-Q[0]) + Math.hypot(J-Q[1]);
 
                         o = 0;
                         u = M[I%N][J%N]; // next cell
-                        h = g[o++] ? t[0] : u[0];
-                        h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
-                        J == 500 && (h = I%20 ? 50 : 52);
+                        h = g[o++] ? t[0|i < N] : u[0|i < N];
+                        h += g[o++]*(M[g[o++]%N][g[o++]%N][0|i < N] - h);
+                        i == N && (h = 40);
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
 
                         z = P-(h-Z)/d; // height on screen from perspective calculations
 
-                        p = 0|p + (d > L && (d - L)*(33 - p)/L); // D-L=L since L=D/2
+                        p = 0|p + (d > L && (d - L)*(33 - p)/L);
 
                         z < m && (
                             p-q && n-m && R[q].push(n-m, k, n = m, S),
@@ -203,7 +205,7 @@
                             m = z
                         );
 
-                        p = u[1];
+                        p = u[2];
                         l = h;
 
                     }
@@ -211,14 +213,13 @@
                     R[q].push(n-m, k, n = m, S); // push last rect in pipe
                 }
 
-                V += (1-V)/200-V*(j > 3)*j/20;
+                V += (0.5-V)/200/*-V*(j > 3)*j/20*/;
                 A += B += K;
                 X += V*Math.cos(r = A-0.5);
                 Y += V*Math.sin(r);
                 Z += j/20;
 
                 fps(+new Date);
-                T++;
             }, 33);
         </script>
     </body>
