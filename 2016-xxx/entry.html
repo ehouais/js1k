@@ -37,22 +37,12 @@
             var c = a.getContext('2d');
         </script>
         <script>
-            // * biomes: plain+fields+fences+raods+villages, monument valley+canyon+river,
-            // * biomes: mountains+forests+rivers+castles+snow, ocean+cliffs+beaches+islands, city+skyscrapers+streets
-            // * clouds
-            // * primary color (2nd background) = f(biome)
-            // * variable background color
-            // * autopilot, auto-height
-            // * world seed => set of generation params (see level, montain shape & height, plateau height)
-            // * buildings
-            // * layers of colors
-            // * beacon/lights to show the direction / head-up indicator
-            // * permanent energy consumption
-            // * random generation parameters
-            // * icebergs, forests
+            // * buildings beyond fence
             // * raycast bands bottom: low-res / middle: high-res
-            // * S = f(W, ...)
             // * use Math.{clz32, cbrt, expm1/log1p, hyp functions}
+            // * focused area = f(A)
+            // * dust storm
+            // * rising fence
 
             var fps = (function(id) {
                     var fpsd = document.getElementById(id),
@@ -69,17 +59,18 @@
             H = a.height/2;
             W = H*2.5;
             a.style.width = (a.width = W) + 'px';
-            D = 170/H;
+            D = 180/H;
             L = D/2;
             M = [];         // terrain array
             N = 250;        // terrain size => nb. points = 220
             //S             // variable pixel column width
             X = 1e9;    // coordinates, forced to positive values
-            A = 1.7;        // direction
+            A = 2;        // direction
             Y =
             B =             // direction 1st derivative
             Z =             // altitude
             V =             // speed
+            T =
             K = 0;          // keyboard state
             R = [];         // color array
 
@@ -119,11 +110,11 @@
                             Math.min(d = Math.hypot(I - u[0]), Math.hypot(N-d)),
                             Math.min(d = Math.hypot(J - u[1]), Math.hypot(N-d))
                         ), -2);
-                        s += (k-150)*w;
+                        s += k*w;
                     }
 
                     M[I%N][J%N] = [
-                        m = Math.max(0, s/t/9+2+(Math.random() < 0.1 && Math.random())), // altitude
+                        m = s/t/9+(Math.random() < 0.1 && Math.random()), // altitude
                         8 - 5*Math.atan(n-m)
                     ]
                 }
@@ -140,7 +131,7 @@
                 )
                     for (
                         u = R[k],
-                        c.fillStyle = 'hsl(25,50%,'+k*3+'%)';
+                        c.fillStyle = 'hsl(28,50%,'+k*3+'%)';
                         h = u.shift();
                     )
                         c.fillRect(u.shift(), u.shift(), u.shift(), h+1);
@@ -197,14 +188,13 @@
                         u = M[I%N][J%N]; // next cell
                         h = g[o++] ? t[0] : u[0];
                         h += g[o++]*(M[g[o++]%N][g[o++]%N][0] - h);
-                        J == 500 && (h = Math.max(h, 29*(I%20 == 0)));
+                        J == 500 && (h = I%20 ? 50 : 52);
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
 
                         z = P-(h-Z)/d; // height on screen from perspective calculations
 
-                        p = h+l ? p : 3;
                         p = 0|p + (d > L && (d - L)*(33 - p)/L); // D-L=L since L=D/2
 
                         z < m && (
@@ -221,13 +211,14 @@
                     R[q].push(n-m, k, n = m, S); // push last rect in pipe
                 }
 
-                V += (1-V)/200-V*(j > 4)*j/20;
+                V += (1-V)/200-V*(j > 3)*j/20;
                 A += B += K;
                 X += V*Math.cos(r = A-0.5);
                 Y += V*Math.sin(r);
                 Z += j/20;
 
                 fps(+new Date);
+                T++;
             }, 33);
         </script>
     </body>
