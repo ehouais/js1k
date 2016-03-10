@@ -52,25 +52,25 @@
                         fpsi = 0,
                         sum = 0,
                         oldtime = +new Date;
-                    return function(time) {
-                        fpsd.innerHTML = 0|(sum += -(fpss[fpsi%fpsl] || 0) + (fpss[fpsi++%fpsl] = 1000/(-oldtime+(oldtime = time))))/fpsl; // nb. frames/s (sliding window)
+                    return function(time, x, y) {
+                        fpsd.innerHTML = (0|(sum += -(fpss[fpsi%fpsl] || 0) + (fpss[fpsi++%fpsl] = 1000/(-oldtime+(oldtime = time))))/fpsl)+' '+x+'/'+y; // nb. frames/s (sliding window)
                     };
                 })('fps');
 
-            H = a.height/2;
-            W = H*2.5;
+            W = a.height;
+            H = W/2;
             a.style.width = (a.width = W) + 'px';
             D = 180/H;
-            L = D/2;
-            M = [];         // terrain array
-            N = 250;        // terrain size => nb. points = 220
+            R = [L = D/2];         // color array
+            M = [N = 250];         // terrain array
+            //N        // terrain size => nb. points = 220
             //S             // variable pixel column width
-            A = 2;        // direction
+            A = 2;            // direction
             B =             // direction 1st derivative
             Z =             // altitude
             V =             // speed
             K = 0;          // keyboard state
-            R = [];         // color array
+            X = Y = 1E9;
 
             onkeydown = onkeyup = function(e) {
                 K = e.which == 37 ? e.type[5] ? 2E-4 : 0 : e.which == 39 ? e.type[5] ? -2E-4 : 0 : K;
@@ -94,7 +94,7 @@
                 I++
             )
                 for (
-                    M[I] = [], n = 0, J = N+1;
+                    M[I] = [J = N+1], n = 0;
                     J;
                     J--,
                     n = m
@@ -111,14 +111,16 @@
                         s += k*w;
                     }
 
+                    m = s/t/12;
                     M[I%N][J%N] = [
-                        m = s/t/9+(Math.random() < 0.1 && Math.random()), // altitude
-                        4*(0|m/4),
+                        10 + 4*(0|m/4),
+                        m += Math.random() < 0.1 && Math.random(), // altitude
                         8 - 5*Math.atan(n-m)
                     ]
                 }
+            console.log(mm/N/N);
 
-            Q = [X = 1E9, Y = 1E9];    // coordinates, forced to positive values
+            Q = [X, Y];    // coordinates, forced to positive values
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
@@ -142,8 +144,8 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|Math.hypot(W/2-k-B*4E4)/50+2;
-                    P = V*(k-H)*B*50+H; // roll + pitch simulationH
+                    S = 0|Math.hypot(k-H+2E4*B)/50+2;
+                    P = V*(k-H)*B*50+H; // roll + pitch simulation
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                     F = 1/Math.hypot(w = H*Math.sin(r));
@@ -158,7 +160,7 @@
                     n = m = W; // screen y coordinate (current, next)
                     q = p = u[2]; // color (current, next)
 
-                    j = u[0]+5-Z;
+                    j = u[Math.hypot(I-Q[0]) > N | Math.hypot(J-Q[1]) > N]+5 - Z;
 
                     for (
                         l = d = 0;
@@ -184,18 +186,18 @@
                             e-f,
                             F
                         ];
-                        i = Math.hypot(I-Q[0]) + Math.hypot(J-Q[1]);
+                        i = Math.hypot(I-Q[0]) > N | Math.hypot(J-Q[1]) > N;
 
                         o = 0;
                         u = M[I%N][J%N]; // next cell
-                        h = g[o++] ? t[0|i < N] : u[0|i < N];
-                        h += g[o++]*(M[g[o++]%N][g[o++]%N][0|i < N] - h);
-                        i == N && (h = 40);
+                        h = g[o++] ? t[i] : u[i];
+                        h += g[o++]*(M[g[o++]%N][g[o++]%N][i] - h) - Z;
+                        //i == N && (h = 40);
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
 
-                        z = P-(h-Z)/d; // height on screen from perspective calculations
+                        z = P-h/d; // height on screen from perspective calculations
 
                         p = 0|p + (d > L && (d - L)*(33 - p)/L);
 
@@ -213,13 +215,13 @@
                     R[q].push(n-m, k, n = m, S); // push last rect in pipe
                 }
 
-                V += (0.5-V)/200/*-V*(j > 3)*j/20*/;
                 A += B += K;
+                V += (1/(1+B*4E4*B)-V)/160;
                 X += V*Math.cos(r = A-0.5);
                 Y += V*Math.sin(r);
                 Z += j/20;
 
-                fps(+new Date);
+                fps(+new Date, 0|X-Q[0], 0|Y-Q[1]);
             }, 33);
         </script>
     </body>
