@@ -52,8 +52,8 @@
                         fpsi = 0,
                         sum = 0,
                         oldtime = +new Date;
-                    return function(time, x, y) {
-                        fpsd.innerHTML = (0|(sum += -(fpss[fpsi%fpsl] || 0) + (fpss[fpsi++%fpsl] = 1000/(-oldtime+(oldtime = time))))/fpsl)+' '+x+'/'+y; // nb. frames/s (sliding window)
+                    return function(time) {
+                        fpsd.innerHTML = 0|(sum += -(fpss[fpsi%fpsl] || 0) + (fpss[fpsi++%fpsl] = 1000/(-oldtime+(oldtime = time))))/fpsl; // nb. frames/s (sliding window)
                     };
                 })('fps');
 
@@ -62,10 +62,10 @@
             a.style.width = (a.width = W) + 'px';
             D = 180/H;
             R = [L = D/2];         // color array
-            M = [N = 250];         // terrain array
+            M = [N = 256];         // terrain array
             //N        // terrain size => nb. points = 220
             //S             // variable pixel column width
-            A = 2;            // direction
+            A =             // direction
             B =             // direction 1st derivative
             Z =             // altitude
             V =             // speed
@@ -101,26 +101,23 @@
                 ) {
                     for (
                         s = t = k = 0;
-                        Q = R[k];
+                        u = R[k];
                         k++
                     ) {
                         t += w = Math.pow(Math.hypot(
-                            Math.min(i = Math.hypot(I-Q[0]), Math.hypot(N-i)),
-                            Math.min(i = Math.hypot(J-Q[1]), Math.hypot(N-i))
+                            Math.min(i = Math.hypot(I-u[0]), Math.hypot(N-i)),
+                            Math.min(i = Math.hypot(J-u[1]), Math.hypot(N-i))
                         ), -2);
-                        s += k*w;
+                        s += Math.max(k, 150)*w;
                     }
 
                     m = s/t/12;
                     M[I%N][J%N] = [
-                        10 + 4*(0|m/4),
                         m += Math.random() < 0.1 && Math.random(), // altitude
+                        Math.max(m, 30*(m > 21)),
                         8 - 5*Math.atan(n-m)
                     ]
                 }
-            console.log(mm/N/N);
-
-            Q = [X, Y];    // coordinates, forced to positive values
 
             // rendering procedure ----------------------------------------
             setInterval(function(e) {
@@ -160,7 +157,8 @@
                     n = m = W; // screen y coordinate (current, next)
                     q = p = u[2]; // color (current, next)
 
-                    j = u[Math.hypot(I-Q[0]) > N | Math.hypot(J-Q[1]) > N]+5 - Z;
+                    i = I>>8&1;
+                    j = u[i]+5 - Z;
 
                     for (
                         l = d = 0;
@@ -186,7 +184,7 @@
                             e-f,
                             F
                         ];
-                        i = Math.hypot(I-Q[0]) > N | Math.hypot(J-Q[1]) > N;
+                        i = I>>8&1;
 
                         o = 0;
                         u = M[I%N][J%N]; // next cell
@@ -216,12 +214,12 @@
                 }
 
                 A += B += K;
-                V += (1/(1+B*4E4*B)-V)/160;
+                V += (1-V)/180;
                 X += V*Math.cos(r = A-0.5);
                 Y += V*Math.sin(r);
                 Z += j/20;
 
-                fps(+new Date, 0|X-Q[0], 0|Y-Q[1]);
+                fps(+new Date);
             }, 33);
         </script>
     </body>
