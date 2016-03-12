@@ -4,9 +4,6 @@
         <title>Raycaster</title>
         <meta charset="utf-8" />
         <style>
-            body {
-                text-align: center;
-            }
             #fps {
                 position: absolute;
                 top: 0;
@@ -59,17 +56,16 @@
 
             W = a.height;
             H = W/2;
-            a.style.width = (a.width = W) + 'px';
-            D = 180/H;
+            D = 200/H;
             R = [L = D/2];         // color array
             M = [N = 256];         // terrain array
             //N        // terrain size => nb. points = 220
             //S             // variable pixel column width
             B =             // direction 1st derivative
-            Z =             // altitude
             K = 0;          // keyboard state
             A = 1.2;          // direction
             X = Y = 1E9;
+            Z = 9;            // altitude
             g = [];
 
             onkeydown = onkeyup = function(e) {
@@ -142,7 +138,7 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|Math.hypot(k-H+4E4*B)/40+2;
+                    S = 0|Math.hypot(k-H)/40+2;
                     P = (k-H)*B*40+H; // roll + pitch simulation
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
