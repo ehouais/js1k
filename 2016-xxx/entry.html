@@ -65,12 +65,12 @@
             M = [N = 256];         // terrain array
             //N        // terrain size => nb. points = 220
             //S             // variable pixel column width
-            A =             // direction
             B =             // direction 1st derivative
             Z =             // altitude
-            V =             // speed
             K = 0;          // keyboard state
+            A = 1.2;          // direction
             X = Y = 1E9;
+            g = [];
 
             onkeydown = onkeyup = function(e) {
                 K = e.which == 37 ? e.type[5] ? 2E-4 : 0 : e.which == 39 ? e.type[5] ? -2E-4 : 0 : K;
@@ -108,14 +108,15 @@
                             Math.min(i = Math.hypot(I-u[0]), Math.hypot(N-i)),
                             Math.min(i = Math.hypot(J-u[1]), Math.hypot(N-i))
                         ), -2);
-                        s += Math.max(k, 150)*w;
+                        s += k&1 && k*w;
                     }
 
-                    m = s/t/12;
                     M[I%N][J%N] = [
-                        m += Math.random() < 0.1 && Math.random(), // altitude
-                        Math.max(m, 30*(m > 21)),
-                        8 - 5*Math.atan(n-m)
+                        m = s/t/12 + (Math.random() < 0.1 && Math.random()), // altitude
+                        m > 13 ? 24 : m,
+                        m,
+                        Math.max(0, m - 5 + 5*Math.cos(I/41)),
+                        12 - 8*Math.atan(n-m)
                     ]
                 }
 
@@ -131,7 +132,7 @@
                 )
                     for (
                         u = R[k],
-                        c.fillStyle = 'hsl(28,50%,'+k*3+'%)';
+                        c.fillStyle = 'hsl(28,50%,'+k*2+'%)';
                         h = u.shift();
                     )
                         c.fillRect(u.shift(), u.shift(), u.shift(), h+1);
@@ -141,8 +142,8 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|Math.hypot(k-H+2E4*B)/50+2;
-                    P = V*(k-H)*B*50+H; // roll + pitch simulation
+                    S = 0|Math.hypot(k-H+4E4*B)/40+2;
+                    P = (k-H)*B*40+H; // roll + pitch simulation
 
                     E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
                     F = 1/Math.hypot(w = H*Math.sin(r));
@@ -155,10 +156,10 @@
                     f = F*(w < 0 ? y : 1-y);
 
                     n = m = W; // screen y coordinate (current, next)
-                    q = p = u[2]; // color (current, next)
+                    q = p = u[4]; // color (current, next)
 
-                    i = I>>8&1;
-                    j = u[i]+5 - Z;
+                    i = I>>8&3;
+                    j = u[i]+4 - Z;
 
                     for (
                         l = d = 0;
@@ -184,20 +185,21 @@
                             e-f,
                             F
                         ];
-                        i = I>>8&1;
+                        i = I>>8&3;
 
                         o = 0;
                         u = M[I%N][J%N]; // next cell
                         h = g[o++] ? t[i] : u[i];
-                        h += g[o++]*(M[g[o++]%N][g[o++]%N][i] - h) - Z;
+                        h += g[o++]*(M[g[o++]%N][g[o++]%N][i] - h);
                         //i == N && (h = 40);
                         d += g[o++];
                         e = g[o++];
                         f = g[o++];
 
-                        z = P-h/d; // height on screen from perspective calculations
+                        z = P-(h-Z)/d; // height on screen from perspective calculations
 
-                        p = 0|p + (d > L && (d - L)*(33 - p)/L);
+                        p = h+l ? p : 7;
+                        p = 0|p + (d > L && (d - L)*(50 - p)/L);
 
                         z < m && (
                             p-q && n-m && R[q].push(n-m, k, n = m, S),
@@ -205,7 +207,7 @@
                             m = z
                         );
 
-                        p = u[2];
+                        p = u[4];
                         l = h;
 
                     }
@@ -214,12 +216,11 @@
                 }
 
                 A += B += K;
-                V += (1-V)/180;
-                X += V*Math.cos(r = A-0.5);
-                Y += V*Math.sin(r);
+                X += Math.cos(r = A-0.5);
+                Y += Math.sin(r);
                 Z += j/20;
 
-                fps(+new Date);
+                //fps(+new Date);
             }, 33);
         </script>
     </body>
