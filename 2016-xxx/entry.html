@@ -100,10 +100,11 @@
                         u = R[k];
                         k++
                     ) {
-                        t += w = Math.pow(Math.hypot(
-                            Math.min(i = Math.hypot(I-u[0]), Math.hypot(N-i)),
-                            Math.min(i = Math.hypot(J-u[1]), Math.hypot(N-i))
-                        ), -2);
+                        t += w = 1/(
+                            (i = Math.min(i = Math.abs(I-u[0]), Math.abs(N-i)))*i
+                            +
+                            (i = Math.min(i = Math.abs(J-u[1]), Math.abs(N-i)))*i
+                        );
                         s += k&1 && k*w;
                     }
 
@@ -138,11 +139,11 @@
                     k < W;
                     k += S
                 ) {
-                    S = 0|Math.hypot(k-H)/40+2;
+                    S = 0|Math.abs(k-H)/40+2;
                     P = (k-H)*B*40+H; // roll + pitch simulation
 
-                    E = 1/Math.hypot(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
-                    F = 1/Math.hypot(w = H*Math.sin(r));
+                    E = 1/Math.abs(v = H*Math.cos(r = A-k/W)); // approx: atan(x) ~ x for |x| < 0.4
+                    F = 1/Math.abs(w = H*Math.sin(r));
                     I = 0|X;
                     J = 0|Y;
                     u = M[I%N][J%N];
